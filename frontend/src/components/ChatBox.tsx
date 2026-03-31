@@ -16,8 +16,7 @@ import { getSocket } from '../lib/socket';
 import { useChatRoom, useTypingIndicator } from '../hooks/usesocket';
 import { useAuth } from '../context/AuthContext';
 
-// ── Types ─────────────────────────────────────────────────────────────────────
-
+// -- Types --
 interface ChatMessage {
   id: string;
   requestId: string;
@@ -48,8 +47,7 @@ interface ChatBoxProps {
   compact?: boolean;           // embed mode (no header)
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
+// -- Helpers --
 function formatMessageTime(date: string): string {
   const d = new Date(date);
   if (isToday(d))     return format(d, 'HH:mm');
@@ -71,8 +69,7 @@ function shouldShowDateSeparator(curr: ChatMessage, prev: ChatMessage | undefine
   return c.toDateString() !== p.toDateString();
 }
 
-// ── Main Component ────────────────────────────────────────────────────────────
-
+// -- Main Component --
 export default function ChatBox({
   requestId,
   receiverId,
@@ -103,7 +100,7 @@ export default function ChatBox({
 
   useEffect(() => { scrollToBottom(); }, [messages, scrollToBottom]);
 
-  // ── Load chat history ─────────────────────────────────────────────────────
+  // -- Load chat history --
   useEffect(() => {
     if (!requestId) return;
 
@@ -139,7 +136,7 @@ export default function ChatBox({
     load();
   }, [requestId, scrollToBottom]);
 
-  // ── Socket listeners ──────────────────────────────────────────────────────
+  // -- Socket listeners --
   useEffect(() => {
     const socket = getSocket();
 
@@ -206,7 +203,7 @@ export default function ChatBox({
     };
   }, [requestId, user?.id, receiverId]);
 
-  // ── Send message ──────────────────────────────────────────────────────────
+  // -- Send message --
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     const content = newMessage.trim();
@@ -286,7 +283,7 @@ export default function ChatBox({
     setNewMessage(content);
   };
 
-  // ── Render ────────────────────────────────────────────────────────────────
+  // -- Render --
   return (
     <Box sx={{
       display: 'flex', flexDirection: 'column',
