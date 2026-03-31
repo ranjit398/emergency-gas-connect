@@ -1,8 +1,8 @@
-import { Request, Response } from 'express';
+﻿import { Request, Response } from 'express';
 import { body } from 'express-validator';
-import providerService from '@services/ProviderService';
-import { asyncHandler } from '@middleware/index';
-import { success } from '@utils/response';
+import providerService from './services/ProviderService';
+import { asyncHandler } from './middleware/index';
+import { success } from './utils/response';
 
 export class ProviderController {
   createProvider = asyncHandler(async (req: Request, res: Response) => {

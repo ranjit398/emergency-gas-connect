@@ -1,13 +1,13 @@
-// backend/src/services/smartTagging.service.ts
+﻿// backend/src/services/smartTagging.service.ts
 // ─────────────────────────────────────────────────────────────────────────────
 // Smart Tagging Service
 // Adds intelligent labels to requests and helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
-import EmergencyRequest from '@models/EmergencyRequest';
-import Profile from '@models/Profile';
-import Rating from '@models/Rating';
-import { IEmergencyRequest } from '@models/EmergencyRequest';
+import EmergencyRequest from './models/EmergencyRequest';
+import Profile from './models/Profile';
+import Rating from './models/Rating';
+import { IEmergencyRequest } from './models/EmergencyRequest';
 
 export interface TaggedRequest extends Record<string, any> {
   _doc?: any;

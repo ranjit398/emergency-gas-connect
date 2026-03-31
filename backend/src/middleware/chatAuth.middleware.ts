@@ -1,12 +1,12 @@
-// backend/src/middleware/chatAuth.middleware.ts
+﻿// backend/src/middleware/chatAuth.middleware.ts
 // ─────────────────────────────────────────────────────────────────────────────
 // Chat Authorization Middleware
 // Ensures only seeker/helper can access request chat
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { Request, Response, NextFunction } from 'express';
-import EmergencyRequest from '@models/EmergencyRequest';
-import logger from '@utils/logger';
+import EmergencyRequest from './models/EmergencyRequest';
+import logger from './utils/logger';
 
 declare global {
   namespace Express {

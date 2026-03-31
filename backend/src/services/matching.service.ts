@@ -1,4 +1,4 @@
-// backend/src/services/matching.service.ts
+﻿// backend/src/services/matching.service.ts
 // ─────────────────────────────────────────────────────────────────────────────
 // Smart Geo-Based Matching Service
 //
@@ -10,9 +10,9 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import mongoose from 'mongoose';
-import Profile from '@models/Profile';
-import EmergencyRequest from '@models/EmergencyRequest';
-import { NotFoundError, ValidationError } from '@middleware/errorHandler';
+import Profile from './models/Profile';
+import EmergencyRequest from './models/EmergencyRequest';
+import { NotFoundError, ValidationError } from './middleware/errorHandler';
 import {
   buildRecommendations,
   HelperRecommendation,
@@ -22,7 +22,7 @@ import {
   getPriorityLevel,
   PriorityLevel,
 } from './priority.service';
-import logger from '@utils/logger';
+import logger from './utils/logger';
 
 // ── Haversine distance (km) ────────────────────────────────────────────────
 export function haversineKm(

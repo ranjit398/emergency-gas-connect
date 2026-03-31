@@ -1,6 +1,6 @@
-import jwt from 'jsonwebtoken';
-import config from '@config/index';
-import { JWTPayload, UserRole } from '@types';
+﻿import jwt from 'jsonwebtoken';
+import config from './config/index';
+import { JWTPayload, UserRole } from './types';
 
 export const generateToken = (
   id: string,

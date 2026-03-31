@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Emergency Request Routes
  * Defines all API endpoints for emergency gas request operations
  */
@@ -7,10 +7,10 @@ import express, { Router } from 'express';
 import emergencyRequestController, {
   createRequestValidation,
   completeRequestValidation,
-} from '@controllers/EmergencyRequestController';
-import { authMiddleware, requireRole } from '@middleware/auth';
-import { validate } from '@middleware/validation';
-import { validateMongoId, validatePagination } from '@utils/validators';
+} from './controllers/EmergencyRequestController';
+import { authMiddleware, requireRole } from './middleware/auth';
+import { validate } from './middleware/validation';
+import { validateMongoId, validatePagination } from './utils/validators';
 
 const router: Router = express.Router();
 

@@ -1,9 +1,9 @@
-// backend/src/routes/live.ts
+﻿// backend/src/routes/live.ts
 
 import express, { Router } from 'express';
-import liveDataController from '@controllers/LiveDataController';
-import { authMiddleware } from '@middleware/auth';
-import { liveDataLimiter } from '@middleware/rateLimiter';
+import liveDataController from './controllers/LiveDataController';
+import { authMiddleware } from './middleware/auth';
+import { liveDataLimiter } from './middleware/rateLimiter';
 
 const router: Router = express.Router();
 

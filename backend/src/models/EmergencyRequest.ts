@@ -1,6 +1,6 @@
-
+﻿
 import mongoose, { Schema, Document } from 'mongoose';
-import { RequestStatus, CylinderType, GeoLocation } from '@types';
+import { RequestStatus, CylinderType, GeoLocation } from './types';
 
 export interface IEmergencyRequest extends Document {
   seekerId: mongoose.Types.ObjectId;

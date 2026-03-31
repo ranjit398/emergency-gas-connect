@@ -1,6 +1,6 @@
-import mongoose, { Schema, Document } from 'mongoose';
+﻿import mongoose, { Schema, Document } from 'mongoose';
 import bcrypt from 'bcryptjs';
-import { UserRole } from '@types';
+import { UserRole } from './types';
 
 export interface IUser extends Document {
   email: string;

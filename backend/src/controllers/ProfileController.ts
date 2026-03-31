@@ -1,8 +1,8 @@
-import { Request, Response } from 'express';
+﻿import { Request, Response } from 'express';
 import { body } from 'express-validator';
-import profileService from '@services/ProfileService';
-import { asyncHandler } from '@middleware/index';
-import { success, paginated } from '@utils/response';
+import profileService from './services/ProfileService';
+import { asyncHandler } from './middleware/index';
+import { success, paginated } from './utils/response';
 
 export class ProfileController {
   getProfile = asyncHandler(async (req: Request, res: Response) => {

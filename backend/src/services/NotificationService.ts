@@ -1,5 +1,5 @@
-import Notification from '@models/Notification';
-import { NotificationType } from '@models/Notification';
+﻿import Notification from './models/Notification';
+import { NotificationType } from './models/Notification';
 
 export class NotificationService {
   async createNotification(

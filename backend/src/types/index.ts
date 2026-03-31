@@ -1,4 +1,4 @@
-export type UserRole = 'seeker' | 'helper' | 'provider' | 'admin';
+﻿export type UserRole = 'seeker' | 'helper' | 'provider' | 'admin';
 export type RequestStatus = 'pending' | 'accepted' | 'in_progress' | 'completed' | 'cancelled' | 'rejected' | 'expired';
 export type CylinderType = 'LPG' | 'CNG';
 export type BusinessType = 'LPG' | 'CNG' | 'Both';

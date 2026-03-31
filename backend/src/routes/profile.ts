@@ -1,11 +1,11 @@
-import express, { Router } from 'express';
+﻿import express, { Router } from 'express';
 import profileController, {
   updateProfileValidation,
   updateLocationValidation,
   setAvailabilityValidation,
-} from '@controllers/ProfileController';
-import { authMiddleware } from '@middleware/auth';
-import { validate } from '@middleware/validation';
+} from './controllers/ProfileController';
+import { authMiddleware } from './middleware/auth';
+import { validate } from './middleware/validation';
 
 const router: Router = express.Router();
 

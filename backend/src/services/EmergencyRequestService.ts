@@ -1,13 +1,13 @@
-import { Server as SocketServer } from 'socket.io';
+﻿import { Server as SocketServer } from 'socket.io';
 import mongoose from 'mongoose';
-import EmergencyRequest, { IEmergencyRequest } from '@models/EmergencyRequest';
-import Profile from '@models/Profile';
-import User from '@models/User';
-import { NotFoundError, ValidationError } from '@middleware/errorHandler';
+import EmergencyRequest, { IEmergencyRequest } from './models/EmergencyRequest';
+import Profile from './models/Profile';
+import User from './models/User';
+import { NotFoundError, ValidationError } from './middleware/errorHandler';
 import { calculatePriorityScore, getPriorityLevel } from './priority.service';
-import { broadcastActivity } from '@socket/handlers';
-import { emitDashboardUpdate } from '@socket/dashboard.handler';
-import logger from '@utils/logger';
+import { broadcastActivity } from './socket/handlers';
+import { emitDashboardUpdate } from './socket/dashboard.handler';
+import logger from './utils/logger';
 
 let _io: SocketServer | null = null;
 export function setSocketIO(io: SocketServer) { _io = io; }

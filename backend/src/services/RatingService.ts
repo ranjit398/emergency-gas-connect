@@ -1,7 +1,7 @@
-import Rating, { IRating } from '@models/Rating';
-import Profile from '@models/Profile';
-import Provider from '@models/Provider';
-import { NotFoundError, ValidationError } from '@middleware/errorHandler';
+﻿import Rating, { IRating } from './models/Rating';
+import Profile from './models/Profile';
+import Provider from './models/Provider';
+import { NotFoundError, ValidationError } from './middleware/errorHandler';
 
 export class RatingService {
   async createRating(

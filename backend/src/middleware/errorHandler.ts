@@ -1,11 +1,11 @@
-/**
+﻿/**
  * Error handling middleware and custom error classes
  * Provides consistent error response format across API
  */
 
 import { Request, Response, NextFunction } from 'express';
-import config from '@config/index';
-import logger from '@utils/logger';
+import config from './config/index';
+import logger from './utils/logger';
 
 /**
  * Interface for application errors

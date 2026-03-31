@@ -1,9 +1,9 @@
-// backend/src/controllers/LiveDataController.ts
+﻿// backend/src/controllers/LiveDataController.ts
 
 import { Request, Response } from 'express';
-import { asyncHandler } from '@middleware/index';
-import { success } from '@utils/response';
-import { getLiveData, getProviderLiveData, getHelperLiveData, getSeekerLiveData } from '@services/LiveDataService';
+import { asyncHandler } from './middleware/index';
+import { success } from './utils/response';
+import { getLiveData, getProviderLiveData, getHelperLiveData, getSeekerLiveData } from './services/LiveDataService';
 
 export class LiveDataController {
   // GET /api/v1/live/me  — role-aware, single call for entire dashboard

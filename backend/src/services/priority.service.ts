@@ -1,4 +1,4 @@
-// backend/src/services/priority.service.ts
+﻿// backend/src/services/priority.service.ts
 // ─────────────────────────────────────────────────────────────────────────────
 // Emergency Priority Scoring Engine
 //
@@ -13,8 +13,8 @@
 // Score range: 0–100 (higher = more urgent)
 // ─────────────────────────────────────────────────────────────────────────────
 
-import EmergencyRequest from '@models/EmergencyRequest';
-import logger from '@utils/logger';
+import EmergencyRequest from './models/EmergencyRequest';
+import logger from './utils/logger';
 
 // ── Keyword urgency dictionaries ─────────────────────────────────────────────
 const HIGH_URGENCY_KEYWORDS = [

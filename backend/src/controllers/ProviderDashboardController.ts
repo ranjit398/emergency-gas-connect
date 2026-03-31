@@ -1,10 +1,10 @@
-// backend/src/controllers/ProviderDashboardController.ts
+﻿// backend/src/controllers/ProviderDashboardController.ts
 
 import { Request, Response } from 'express';
-import { success } from '@utils/response';
-import ProviderDashboardService from '@services/ProviderDashboardService';
-import ProviderService from '@services/ProviderService';
-import { asyncHandler } from '@middleware/index';
+import { success } from './utils/response';
+import ProviderDashboardService from './services/ProviderDashboardService';
+import ProviderService from './services/ProviderService';
+import { asyncHandler } from './middleware/index';
 
 export class ProviderDashboardController {
 

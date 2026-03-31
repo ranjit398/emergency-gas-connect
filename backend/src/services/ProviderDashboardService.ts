@@ -1,17 +1,17 @@
-// backend/src/services/ProviderDashboardService.ts
+﻿// backend/src/services/ProviderDashboardService.ts
 // ─────────────────────────────────────────────────────────────────────────────
 // FULLY ENHANCED — Real live stats, time-series data, inventory tracking
 // All queries return actual DB data, no placeholder values
 // ─────────────────────────────────────────────────────────────────────────────
 
 import mongoose from 'mongoose';
-import Provider from '@models/Provider';
-import EmergencyRequest from '@models/EmergencyRequest';
-import Profile from '@models/Profile';
-import Rating from '@models/Rating';
-import { NotFoundError, ValidationError } from '@middleware/errorHandler';
-import { haversineKm } from '@services/matching.service';
-import logger from '@utils/logger';
+import Provider from './models/Provider';
+import EmergencyRequest from './models/EmergencyRequest';
+import Profile from './models/Profile';
+import Rating from './models/Rating';
+import { NotFoundError, ValidationError } from './middleware/errorHandler';
+import { haversineKm } from './services/matching.service';
+import logger from './utils/logger';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 

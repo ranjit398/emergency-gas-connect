@@ -1,13 +1,13 @@
-import express, { Router, Request, Response } from 'express';
-import providerDashboardController from '@controllers/ProviderDashboardController';
-import { authMiddleware, requireRole } from '@middleware/auth';
-import { asyncHandler } from '@middleware/index';
-import dashboardService from '@services/dashboard.service';
-import analyticsService from '@services/analytics.service';
-import smartTaggingService from '@services/smartTagging.service';
-import ProviderService from '@services/ProviderService';
-import EmergencyRequest from '@models/EmergencyRequest';
-import { success } from '@utils/response';
+﻿import express, { Router, Request, Response } from 'express';
+import providerDashboardController from './controllers/ProviderDashboardController';
+import { authMiddleware, requireRole } from './middleware/auth';
+import { asyncHandler } from './middleware/index';
+import dashboardService from './services/dashboard.service';
+import analyticsService from './services/analytics.service';
+import smartTaggingService from './services/smartTagging.service';
+import ProviderService from './services/ProviderService';
+import EmergencyRequest from './models/EmergencyRequest';
+import { success } from './utils/response';
 
 const router: Router = express.Router();
 

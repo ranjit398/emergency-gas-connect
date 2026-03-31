@@ -1,11 +1,11 @@
-// backend/src/controllers/smart/matching.controller.ts
+﻿// backend/src/controllers/smart/matching.controller.ts
 
 import { Request, Response } from 'express';
-import { asyncHandler } from '@middleware/index';
-import { success, paginated } from '@utils/response';
-import { matchForRequest, findNearbyHelpers, getPrioritisedRequests } from '@services/matching.service';
-import { bulkRefreshPriorities } from '@services/priority.service';
-import { NotFoundError, ValidationError } from '@middleware/errorHandler';
+import { asyncHandler } from './middleware/index';
+import { success, paginated } from './utils/response';
+import { matchForRequest, findNearbyHelpers, getPrioritisedRequests } from './services/matching.service';
+import { bulkRefreshPriorities } from './services/priority.service';
+import { NotFoundError, ValidationError } from './middleware/errorHandler';
 
 export class MatchingController {
 

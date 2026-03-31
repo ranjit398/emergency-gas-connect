@@ -1,14 +1,14 @@
-/**
+﻿/**
  * Authentication and Authorization Middleware
  * Handles JWT verification and role-based access control
  */
 
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import config from '@config/index';
-import { JWTPayload } from '@types';
-import User from '@models/User';
-import logger from '@utils/logger';
+import config from './config/index';
+import { JWTPayload } from './types';
+import User from './models/User';
+import logger from './utils/logger';
 import { UnauthorizedError, ForbiddenError } from './errorHandler';
 
 /**

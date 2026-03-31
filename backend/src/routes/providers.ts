@@ -1,10 +1,10 @@
-import express, { Router } from 'express';
+﻿import express, { Router } from 'express';
 import providerController, {
   createProviderValidation,
   updateProviderValidation,
-} from '@controllers/ProviderController';
-import { authMiddleware, requireRole } from '@middleware/auth';
-import { validate } from '@middleware/validation';
+} from './controllers/ProviderController';
+import { authMiddleware, requireRole } from './middleware/auth';
+import { validate } from './middleware/validation';
 
 const router: Router = express.Router();
 

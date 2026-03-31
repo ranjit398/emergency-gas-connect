@@ -1,6 +1,6 @@
-
+﻿
 import mongoose, { Schema, Document } from 'mongoose';
-import { UserRole, GeoLocation } from '@types';
+import { UserRole, GeoLocation } from './types';
 
 export interface IProfile extends Document {
   userId: mongoose.Types.ObjectId;
