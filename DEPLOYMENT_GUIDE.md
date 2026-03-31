@@ -110,23 +110,7 @@ curl http://localhost:5173
 3. Set environment variables
 4. Auto-deploy on push
 
-### Option B: Heroku
-```bash
-# Install Heroku CLI
-# Login
-heroku login
-
-# Create apps
-heroku create emergency-gas-backend
-heroku create emergency-gas-frontend
-
-# Set config vars
-heroku config:set MONGODB_URI=... --app emergency-gas-backend
-heroku config:set JWT_SECRET=... --app emergency-gas-backend
-
-# Deploy
-git push heroku main
-```
+### 
 
 ### Option C: AWS EC2 + Docker
 1. Launch EC2 instance

@@ -3,8 +3,6 @@ import { getSocket } from '../lib/socket';
 
 type EventCallback = (...args: any[]) => void;
 
-─────────────────────
-
 export const useSocket = (events: Record<string, EventCallback>) => {
   useEffect(() => {
     const socket = getSocket();
