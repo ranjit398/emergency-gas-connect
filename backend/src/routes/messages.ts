@@ -1,11 +1,11 @@
 ﻿import express, { Router, Request, Response } from 'express';
-import messageController, { sendMessageValidation } from './controllers/MessageController';
-import { authMiddleware } from './middleware/auth';
-import { validateChatAccess } from './middleware/chatAuth.middleware';
-import { validate } from './middleware/validation';
-import { asyncHandler } from './middleware/index';
-import chatService from './services/chat.service';
-import { success, paginated } from './utils/response';
+import messageController, { sendMessageValidation } from '@controllers/MessageController';
+import { authMiddleware } from '@middleware/auth';
+import { validateChatAccess } from '@middleware/chatAuth.middleware';
+import { validate } from '@middleware/validation';
+import { asyncHandler } from '@middleware/index';
+import chatService from '@services/chat.service';
+import { success, paginated } from '@utils/response';
 
 const router: Router = express.Router();
 router.use(authMiddleware);

@@ -1,12 +1,13 @@
-﻿import { Request, Response } from 'express';
+﻿
+import { Request, Response } from 'express';
 import { body } from 'express-validator';
-import emergencyRequestService from './services/EmergencyRequestService';
-import requestLifecycleService from './services/requestLifecycle.service';
-import reassignmentService from './services/reassignment.service';
-import smartTaggingService from './services/smartTagging.service';
-import EmergencyRequest from './models/EmergencyRequest';
-import { asyncHandler } from './middleware/index';
-import { success, paginated } from './utils/response';
+import emergencyRequestService from '@services/EmergencyRequestService';
+import requestLifecycleService from '@services/requestLifecycle.service';
+import reassignmentService from '@services/reassignment.service';
+import smartTaggingService from '@services/smartTagging.service';
+import EmergencyRequest from '@models/EmergencyRequest';
+import { asyncHandler } from '@middleware/index';
+import { success, paginated } from '@utils/response';
 
 export class EmergencyRequestController {
 

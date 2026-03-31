@@ -1,5 +1,5 @@
-﻿import Provider, { IProvider } from './models/Provider';
-import { ValidationError, NotFoundError } from './middleware/errorHandler';
+﻿import Provider, { IProvider } from '@models/Provider';
+import { ValidationError, NotFoundError } from '@middleware/errorHandler';
 
 export class ProviderService {
   async createProvider(userId: string, data: {

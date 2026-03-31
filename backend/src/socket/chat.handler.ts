@@ -1,8 +1,8 @@
 ﻿import { Server, Socket } from 'socket.io';
-import chatService from './services/chat.service';
-import { verifyToken } from './utils/jwt';
-import { JWTPayload } from './types';
-import logger from './utils/logger';
+import chatService from '@services/chat.service';
+import { verifyToken } from '@utils/jwt';
+import { JWTPayload } from '@types';
+import logger from '@utils/logger';
 
 
 const onlineUsers = new Map<string, string>();
