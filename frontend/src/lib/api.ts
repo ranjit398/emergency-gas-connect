@@ -1,8 +1,8 @@
-import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
+﻿import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5002/api/v1';
 
-// Token storage helpers — keeps auth logic in one place
+// Token storage helpers  keeps auth logic in one place
 export const tokenStorage = {
   getAccess: () => localStorage.getItem('accessToken'),
   getRefresh: () => localStorage.getItem('refreshToken'),
@@ -89,7 +89,7 @@ api.interceptors.response.use(
 
 export default api;
 
-// ── Typed API helpers ──────────────────────────────────────────────────────
+//  Typed API helpers 
 
 export const authApi = {
   register: (data: {

@@ -1,5 +1,5 @@
-// frontend/src/hooks/useLiveData.ts
-// Universal hook — works for provider, helper, and seeker
+﻿// frontend/src/hooks/useLiveData.ts
+// Universal hook  works for provider, helper, and seeker
 // Auto-refreshes + listens to socket events for instant updates
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -9,14 +9,14 @@ import { toast } from 'react-toastify';
 
 export type LiveRole = 'provider' | 'helper' | 'seeker';
 
-// ── Shared base ───────────────────────────────────────────────────────────────
+//  Shared base 
 interface BaseLiveData {
   role: LiveRole;
   unreadMessages: number;
   fetchedAt: string;
 }
 
-// ── Provider ──────────────────────────────────────────────────────────────────
+//  Provider 
 export interface ProviderLiveData extends BaseLiveData {
   role: 'provider';
   provider: {
@@ -43,7 +43,7 @@ export interface ProviderLiveData extends BaseLiveData {
   sevenDaySeries: SeriesEntry[];
 }
 
-// ── Helper ────────────────────────────────────────────────────────────────────
+//  Helper 
 export interface HelperLiveData extends BaseLiveData {
   role: 'helper';
   helper: {
@@ -61,7 +61,7 @@ export interface HelperLiveData extends BaseLiveData {
   myRequests: RequestItem[];
 }
 
-// ── Seeker ────────────────────────────────────────────────────────────────────
+//  Seeker 
 export interface SeekerLiveData extends BaseLiveData {
   role: 'seeker';
   seeker: { id: string; fullName: string; avatarUrl: string | null };
@@ -73,7 +73,7 @@ export interface SeekerLiveData extends BaseLiveData {
   recentHelpers: RecentHelper[];
 }
 
-// ── Shared types ──────────────────────────────────────────────────────────────
+//  Shared types 
 export interface NearbyRequest {
   id: string; cylinderType: string; quantity: number;
   address: string; message: string | null;
@@ -111,7 +111,7 @@ export interface RecentHelper {
 
 export type LiveData = ProviderLiveData | HelperLiveData | SeekerLiveData;
 
-// ── Hook ──────────────────────────────────────────────────────────────────────
+//  Hook 
 export function useLiveData(role?: LiveRole, autoRefreshMs = 60_000) {
   const [data, setData] = useState<LiveData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -181,16 +181,16 @@ export function useLiveData(role?: LiveRole, autoRefreshMs = 60_000) {
     };
 
     socket.on('request:new', (d: any) => {
-      addEvent(`🚨 New ${d.cylinderType ?? ''} emergency request nearby`, 'NEW_REQUEST');
+      addEvent(` New ${d.cylinderType ?? ''} emergency request nearby`, 'NEW_REQUEST');
       debouncedRefresh();
     });
     socket.on('request:status-changed', (d: any) => {
-      if (d.status === 'accepted') addEvent(`⚡ Request accepted`, 'ACCEPTED');
-      if (d.status === 'completed') addEvent(`✅ Request completed`, 'COMPLETED');
+      if (d.status === 'accepted') addEvent(` Request accepted`, 'ACCEPTED');
+      if (d.status === 'completed') addEvent(` Request completed`, 'COMPLETED');
       debouncedRefresh();
     });
     socket.on('notification:request-accepted', () => {
-      addEvent('✅ Your request was accepted!', 'ACCEPTED');
+      addEvent(' Your request was accepted!', 'ACCEPTED');
       debouncedRefresh();
     });
     socket.on('activity:new', (d: any) => {

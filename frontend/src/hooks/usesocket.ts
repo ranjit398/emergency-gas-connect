@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useRef } from 'react';
+﻿import { useEffect, useCallback, useRef } from 'react';
 import { getSocket } from '../lib/socket';
 
 type EventCallback = (...args: any[]) => void;
@@ -33,7 +33,7 @@ export const useEmit = () => {
   }, []);
 };
 
-// ── NEW: Chat room hook ───────────────────────────────────────────────────────
+//  NEW: Chat room hook 
 
 export const useChatRoom = (requestId: string | undefined) => {
   useEffect(() => {
@@ -44,7 +44,7 @@ export const useChatRoom = (requestId: string | undefined) => {
   }, [requestId]);
 };
 
-// ── NEW: Typing indicator hook ────────────────────────────────────────────────
+//  NEW: Typing indicator hook 
 
 export const useTypingIndicator = (requestId: string | undefined) => {
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
@@ -71,7 +71,7 @@ export const useTypingIndicator = (requestId: string | undefined) => {
   return { handleKeyPress };
 };
 
-// ── NEW: Online presence hook ─────────────────────────────────────────────────
+//  NEW: Online presence hook 
 
 export const useOnlineStatus = (userId: string | undefined) => {
   const isOnlineRef = useRef(false);
@@ -95,7 +95,7 @@ export const useOnlineStatus = (userId: string | undefined) => {
   return { isOnline: isOnlineRef.current };
 };
 
-// ── NEW: Provider dashboard subscription ─────────────────────────────────────
+//  NEW: Provider dashboard subscription 
 
 export const useProviderSocket = (
   providerId: string | undefined,

@@ -1,4 +1,4 @@
-// hooks/usePriorityEngine.ts
+﻿// hooks/usePriorityEngine.ts
 // Drop into: frontend/src/hooks/usePriorityEngine.ts
 
 import { useMemo } from 'react';
@@ -25,7 +25,7 @@ export interface ScoredRequest extends RawRequest {
   minutesAgo: number;
 }
 
-// ── Scoring constants
+//  Scoring constants
 const WEIGHTS = {
   timeSinceRequest: 0.35,  // older = more urgent
   urgencyFromMessage: 0.40, // keyword detection
@@ -80,9 +80,9 @@ function toPriorityLevel(score: number): UrgencyLevel {
 }
 
 const PRIORITY_META: Record<UrgencyLevel, { label: string; color: string }> = {
-  high: { label: '🔴 Critical', color: '#ef4444' },
-  medium: { label: '🟡 Moderate', color: '#f59e0b' },
-  low: { label: '🟢 Standard', color: '#22c55e' },
+  high: { label: ' Critical', color: '#ef4444' },
+  medium: { label: ' Moderate', color: '#f59e0b' },
+  low: { label: ' Standard', color: '#22c55e' },
 };
 
 function calcDistance(

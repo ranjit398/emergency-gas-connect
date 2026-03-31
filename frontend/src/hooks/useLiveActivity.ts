@@ -1,4 +1,4 @@
-// hooks/useLiveActivity.ts
+﻿// hooks/useLiveActivity.ts
 // Drop into: frontend/src/hooks/useLiveActivity.ts
 // Works with mock data out of the box; swap in socket.on() calls for real-time
 
@@ -48,7 +48,7 @@ const EVENT_TEMPLATES: Array<{ type: ActivityType; getMessage: (name: string) =>
   { type: 'helper_available', getMessage: (n) => `${n} is now available to help` },
   { type: 'request_accepted', getMessage: (n) => `${n} is on the way to a seeker` },
   { type: 'provider_joined', getMessage: (n) => `${n} Gas Agency joined the network` },
-  { type: 'request_completed', getMessage: (n) => `${n} marked request completed ✓` },
+  { type: 'request_completed', getMessage: (n) => `${n} marked request completed ` },
 ];
 
 function uid() {
@@ -116,7 +116,7 @@ export function useLiveActivity({
     return () => clearInterval(timerRef.current);
   }, [isLive, intervalMs, pushEvent]);
 
-  // ── If you have a socket, add this inside a useEffect:
+  //  If you have a socket, add this inside a useEffect:
   // useEffect(() => {
   //   if (!socket) return;
   //   const handler = (data: any) => pushEvent({ ...data, timestamp: new Date(), isNew: true });

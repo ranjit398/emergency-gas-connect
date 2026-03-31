@@ -1,5 +1,5 @@
-// frontend/src/pages/Dashboard.tsx
-// UNIFIED DASHBOARD — Shows live data for seeker, helper, and provider in one page
+﻿// frontend/src/pages/Dashboard.tsx
+// UNIFIED DASHBOARD  Shows live data for seeker, helper, and provider in one page
 
 import { useState } from 'react';
 import {
@@ -21,7 +21,7 @@ import { requestsApi, profileApi } from '../lib/api';
 import { useLiveData } from '../hooks/useLiveData';
 import type { NearbyRequest, RequestItem } from '../hooks/useLiveData';
 
-// ── Colour helpers ────────────────────────────────────────────────────────────
+//  Colour helpers 
 const PRIORITY = {
   critical: { bg: 'rgba(239,68,68,.12)', border: 'rgba(239,68,68,.35)', text: '#fca5a5', dot: '#ef4444' },
   high:     { bg: 'rgba(245,158,11,.12)', border: 'rgba(245,158,11,.35)', text: '#fcd34d', dot: '#f59e0b' },
@@ -33,7 +33,7 @@ const STATUS_COLOR: Record<string, string> = {
   pending: '#f59e0b', accepted: '#3b82f6', completed: '#22c55e', cancelled: '#6b7280',
 };
 
-// ── Tiny stat card ─────────────────────────────────────────────────────────────
+//  Tiny stat card 
 function StatCard({ icon, label, value, color, sub }: { icon: React.ReactNode; label: string; value: number | string; color: string; sub?: string }) {
   return (
     <Paper sx={{ p: 2.5, borderRadius: 3, background: `linear-gradient(135deg, ${color}12, transparent)`, border: `1px solid ${color}25`, height: '100%' }}>
@@ -45,7 +45,7 @@ function StatCard({ icon, label, value, color, sub }: { icon: React.ReactNode; l
   );
 }
 
-// ── Priority badge ─────────────────────────────────────────────────────────────
+//  Priority badge 
 function PriorityBadge({ level }: { level: string }) {
   const cfg = PRIORITY[level as keyof typeof PRIORITY] ?? PRIORITY.low;
   return (
@@ -56,7 +56,7 @@ function PriorityBadge({ level }: { level: string }) {
   );
 }
 
-// ── Request row card ──────────────────────────────────────────────────────────
+//  Request row card 
 function RequestRow({ req, showAccept, showChat, showCancel, showComplete, onAccept, onCancel, onComplete }: {
   req: RequestItem;
   showAccept?: boolean; showChat?: boolean; showCancel?: boolean; showComplete?: boolean;
@@ -80,7 +80,7 @@ function RequestRow({ req, showAccept, showChat, showCancel, showComplete, onAcc
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
             <PriorityBadge level={req.priorityLevel} />
             <Chip label={req.status.toUpperCase()} size="small" sx={{ fontSize: '10px', fontWeight: 700, bgcolor: `${statusColor}15`, color: statusColor, border: `1px solid ${statusColor}30` }} />
-            <Chip label={`${req.cylinderType} ×${req.quantity}`} size="small" variant="outlined" sx={{ fontSize: '10px' }} />
+            <Chip label={`${req.cylinderType} ${req.quantity}`} size="small" variant="outlined" sx={{ fontSize: '10px' }} />
           </Box>
           <Typography variant="caption" color="text.disabled">
             {req.minutesAgo < 2 ? 'Just now' : req.minutesAgo < 60 ? `${req.minutesAgo}m ago` : `${Math.floor(req.minutesAgo/60)}h ago`}
@@ -108,7 +108,7 @@ function RequestRow({ req, showAccept, showChat, showCancel, showComplete, onAcc
           {showAccept && req.status === 'pending' && onAccept && (
             <Button size="small" variant="contained" onClick={async () => { setLoading(true); try { await onAccept(req.id); } finally { setLoading(false); } }}
               disabled={loading} sx={{ borderRadius: 1.5, fontSize: '12px', minWidth: 80 }}>
-              {loading ? <CircularProgress size={14} color="inherit" /> : '⚡ Accept'}
+              {loading ? <CircularProgress size={14} color="inherit" /> : ' Accept'}
             </Button>
           )}
           {showChat && req.status === 'accepted' && (
@@ -121,7 +121,7 @@ function RequestRow({ req, showAccept, showChat, showCancel, showComplete, onAcc
             <Button size="small" variant="contained" color="success" startIcon={<CheckCircle size={13} />}
               onClick={async () => { setLoading(true); try { await onComplete(req.id); } finally { setLoading(false); } }}
               disabled={loading} sx={{ borderRadius: 1.5, fontSize: '12px' }}>
-              {loading ? <CircularProgress size={14} color="inherit" /> : '✅ Complete'}
+              {loading ? <CircularProgress size={14} color="inherit" /> : ' Complete'}
             </Button>
           )}
           {showCancel && req.status === 'pending' && onCancel && (
@@ -137,7 +137,7 @@ function RequestRow({ req, showAccept, showChat, showCancel, showComplete, onAcc
   );
 }
 
-// ── Nearby request card (for provider / helper) ───────────────────────────────
+//  Nearby request card (for provider / helper) 
 function NearbyCard({ req, onFulfill, onAccept }: {
   req: NearbyRequest;
   onFulfill?: (id: string) => void;
@@ -145,7 +145,7 @@ function NearbyCard({ req, onFulfill, onAccept }: {
 }) {
   const [loading, setLoading] = useState(false);
   const handler = onFulfill ?? onAccept;
-  const btnLabel = onFulfill ? (req.canFulfill ? '⚡ Fulfill' : '⚠ No Stock') : '⚡ Accept';
+  const btnLabel = onFulfill ? (req.canFulfill ? ' Fulfill' : ' No Stock') : ' Accept';
   const disabled = onFulfill ? !req.canFulfill : false;
 
   return (
@@ -164,10 +164,10 @@ function NearbyCard({ req, onFulfill, onAccept }: {
           <Typography variant="caption" color="success.main" fontWeight={700}>{req.distanceKm}km</Typography>
         </Box>
       </Box>
-      <Typography variant="body2" color="text.secondary" noWrap sx={{ mb: .5 }}>📍 {req.address}</Typography>
+      <Typography variant="body2" color="text.secondary" noWrap sx={{ mb: .5 }}> {req.address}</Typography>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 1 }}>
         <Typography variant="caption" color="text.disabled">
-          {req.seekerName} · {req.minutesAgo < 2 ? 'Just now' : `${req.minutesAgo}m ago`}
+          {req.seekerName}  {req.minutesAgo < 2 ? 'Just now' : `${req.minutesAgo}m ago`}
         </Typography>
         <Button size="small" variant="contained" disabled={loading || disabled}
           onClick={async () => { if (!handler) return; setLoading(true); try { await handler(req.id); } finally { setLoading(false); } }}
@@ -179,9 +179,9 @@ function NearbyCard({ req, onFulfill, onAccept }: {
   );
 }
 
-// ═════════════════════════════════════════════════════════════════════════════
+// 
 // MAIN DASHBOARD
-// ═════════════════════════════════════════════════════════════════════════════
+// 
 export default function Dashboard() {
   const { profile, refreshProfile } = useAuth();
   const navigate = useNavigate();
@@ -191,7 +191,7 @@ export default function Dashboard() {
   const { data, loading, refreshing, error, newEvents, refresh, silentRefresh,
     providerData, helperData, seekerData } = useLiveData(role, 30_000);
 
-  // ── Actions ──────────────────────────────────────────────────────────────
+  //  Actions 
   const handleAccept = async (requestId: string) => {
     try {
       await requestsApi.accept(requestId);
@@ -215,7 +215,7 @@ export default function Dashboard() {
   const handleComplete = async (requestId: string) => {
     try {
       await requestsApi.complete(requestId);
-      toast.success('Request completed! 🎉');
+      toast.success('Request completed! ');
       silentRefresh();
     } catch (e: any) {
       toast.error(e?.response?.data?.error?.message ?? 'Failed to complete');
@@ -234,7 +234,7 @@ export default function Dashboard() {
     }
   };
 
-  // ── Loading ───────────────────────────────────────────────────────────────
+  //  Loading 
   if (loading) {
     return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -257,9 +257,9 @@ export default function Dashboard() {
     );
   }
 
-  // ════════════════════════════════════════════════════════
+  // 
   // SEEKER VIEW
-  // ════════════════════════════════════════════════════════
+  // 
   if (seekerData) {
     const { stats, myRequests, recentHelpers } = seekerData;
     const TABS = ['All', 'Pending', 'Active', 'Completed'];
@@ -307,7 +307,7 @@ export default function Dashboard() {
         {/* Live events */}
         {newEvents.length > 0 && (
           <Paper sx={{ p: 2, mb: 3, borderRadius: 2, borderLeft: '4px solid', borderColor: 'primary.main' }}>
-            <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1 }}>🔴 Live Updates</Typography>
+            <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1 }}> Live Updates</Typography>
             {newEvents.slice(0, 3).map((e) => (
               <Box key={e.id} sx={{ display: 'flex', alignItems: 'center', gap: 1, py: .5 }}>
                 <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: 'primary.main', flexShrink: 0 }} />
@@ -352,7 +352,7 @@ export default function Dashboard() {
           {/* Right: past helpers */}
           <Grid item xs={12} md={4}>
             <Paper sx={{ p: 2.5, borderRadius: 3 }}>
-              <Typography fontWeight={700} sx={{ mb: 2 }}>⭐ Your Helpers</Typography>
+              <Typography fontWeight={700} sx={{ mb: 2 }}> Your Helpers</Typography>
               {recentHelpers.length === 0 ? (
                 <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 3 }}>No helpers yet</Typography>
               ) : recentHelpers.map((h) => (
@@ -360,7 +360,7 @@ export default function Dashboard() {
                   <Avatar src={h.avatarUrl ?? undefined} sx={{ width: 36, height: 36 }}>{h.fullName[0]}</Avatar>
                   <Box sx={{ flex: 1 }}>
                     <Typography variant="body2" fontWeight={600}>{h.fullName}</Typography>
-                    <Typography variant="caption" color="text.secondary">★ {h.rating.toFixed(1)} · helped {h.timesHelped}×</Typography>
+                    <Typography variant="caption" color="text.secondary"> {h.rating.toFixed(1)}  helped {h.timesHelped}</Typography>
                   </Box>
                 </Box>
               ))}
@@ -371,9 +371,9 @@ export default function Dashboard() {
     );
   }
 
-  // ════════════════════════════════════════════════════════
+  // 
   // HELPER VIEW
-  // ════════════════════════════════════════════════════════
+  // 
   if (helperData) {
     const { helper, stats, pendingNearby, myRequests } = helperData;
     const activeReqs = myRequests.filter((r) => r.status === 'accepted');
@@ -391,7 +391,7 @@ export default function Dashboard() {
               control={<Switch checked={helper.isAvailable} onChange={handleToggleAvailability} />}
               label={
                 <Typography variant="body2" fontWeight={600} color={helper.isAvailable ? 'success.main' : 'text.disabled'}>
-                  {helper.isAvailable ? '🟢 Available' : '⚫ Offline'}
+                  {helper.isAvailable ? ' Available' : ' Offline'}
                 </Typography>
               }
             />
@@ -412,7 +412,7 @@ export default function Dashboard() {
             { label: 'Total Accepted', value: stats.totalAccepted, color: '#3b82f6', icon: <Package size={20} /> },
             { label: 'Completed',      value: stats.totalCompleted, color: '#22c55e', icon: <CheckCircle size={20} /> },
             { label: 'Active Now',     value: stats.activeNow, color: '#f97316', icon: <Activity size={20} />, sub: stats.activeNow > 0 ? 'In progress' : undefined },
-            { label: 'Rating',         value: `★ ${helper.rating.toFixed(1)}`, color: '#f59e0b', icon: <Star size={20} />, sub: `${helper.totalRatings} reviews` },
+            { label: 'Rating',         value: ` ${helper.rating.toFixed(1)}`, color: '#f59e0b', icon: <Star size={20} />, sub: `${helper.totalRatings} reviews` },
           ].map(({ label, value, color, icon, sub }) => (
             <Grid item xs={6} md={3} key={label}>
               <StatCard icon={icon} label={label} value={value} color={color} sub={sub} />
@@ -431,7 +431,7 @@ export default function Dashboard() {
           <LinearProgress variant="determinate" value={stats.completionRate}
             sx={{ height: 10, borderRadius: 5, '& .MuiLinearProgress-bar': { borderRadius: 5 } }} />
           <Typography variant="caption" color="text.disabled" sx={{ mt: .5, display: 'block' }}>
-            Avg response: {helper.avgResponseTimeMin}min · {stats.totalCompleted} completed this month
+            Avg response: {helper.avgResponseTimeMin}min  {stats.totalCompleted} completed this month
           </Typography>
         </Paper>
 
@@ -486,9 +486,9 @@ export default function Dashboard() {
     );
   }
 
-  // ════════════════════════════════════════════════════════
+  // 
   // PROVIDER VIEW
-  // ════════════════════════════════════════════════════════
+  // 
   if (providerData) {
     const { provider, stats, nearbyRequests, ratings, sevenDaySeries, recentActivity } = providerData;
     const handleFulfill = async (requestId: string) => {
@@ -508,7 +508,7 @@ export default function Dashboard() {
             <Typography variant="h4" fontWeight={700}>{provider.businessName}</Typography>
             <Box sx={{ display: 'flex', gap: 1, mt: .5 }}>
               <Chip label={provider.businessType} size="small" color="primary" />
-              {provider.isVerified ? <Chip label="✓ Verified" size="small" color="success" /> : <Chip label="Pending Verification" size="small" color="warning" />}
+              {provider.isVerified ? <Chip label=" Verified" size="small" color="success" /> : <Chip label="Pending Verification" size="small" color="warning" />}
             </Box>
           </Box>
           <Tooltip title="Refresh"><IconButton onClick={refresh} disabled={refreshing}><RefreshCw size={18} /></IconButton></Tooltip>
@@ -520,7 +520,7 @@ export default function Dashboard() {
             { label: 'Nearby Pending', value: stats.nearbyPending, color: '#ef4444', icon: <AlertCircle size={20} /> },
             { label: 'Today Fulfilled', value: stats.todayCompleted, color: '#f97316', icon: <TrendingUp size={20} />, sub: `${stats.monthCompleted} this month` },
             { label: 'Total Stock', value: provider.totalStock, color: provider.stockStatus === 'healthy' ? '#22c55e' : provider.stockStatus === 'empty' ? '#6b7280' : '#f59e0b', icon: <Package size={20} />, sub: provider.stockStatus },
-            { label: 'Rating', value: `★ ${ratings.average.toFixed(1)}`, color: '#f59e0b', icon: <Star size={20} />, sub: `${ratings.total} reviews` },
+            { label: 'Rating', value: ` ${ratings.average.toFixed(1)}`, color: '#f59e0b', icon: <Star size={20} />, sub: `${ratings.total} reviews` },
           ].map(({ label, value, color, icon, sub }) => (
             <Grid item xs={6} md={3} key={label}>
               <StatCard icon={icon} label={label} value={value} color={color} sub={sub} />
@@ -534,12 +534,12 @@ export default function Dashboard() {
           <Grid item xs={12} md={8}>
             <Paper sx={{ borderRadius: 3, overflow: 'hidden' }}>
               <Box sx={{ p: 2.5, borderBottom: 1, borderColor: 'divider' }}>
-                <Typography fontWeight={700}>📡 Nearby Emergency Requests</Typography>
+                <Typography fontWeight={700}> Nearby Emergency Requests</Typography>
               </Box>
               <Box sx={{ p: 2.5, maxHeight: 500, overflowY: 'auto' }}>
                 {nearbyRequests.length === 0 ? (
                   <Box sx={{ py: 4, textAlign: 'center' }}>
-                    <Typography color="text.secondary">🎉 No pending requests nearby</Typography>
+                    <Typography color="text.secondary"> No pending requests nearby</Typography>
                   </Box>
                 ) : nearbyRequests.map((req) => (
                   <NearbyCard key={req.id} req={req} onFulfill={handleFulfill} />
@@ -552,7 +552,7 @@ export default function Dashboard() {
           <Grid item xs={12} md={4}>
             {/* Inventory */}
             <Paper sx={{ p: 2.5, borderRadius: 3, mb: 2 }}>
-              <Typography fontWeight={700} sx={{ mb: 2 }}>📦 Inventory</Typography>
+              <Typography fontWeight={700} sx={{ mb: 2 }}> Inventory</Typography>
               {provider.inventory.map((c) => (
                 <Box key={c.type} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 1.5, mb: 1, borderRadius: 2,
                   bgcolor: c.quantity === 0 ? 'rgba(107,114,128,.08)' : c.quantity < 5 ? 'rgba(245,158,11,.08)' : 'rgba(34,197,94,.08)',
@@ -565,7 +565,7 @@ export default function Dashboard() {
 
             {/* Rating Distribution */}
             <Paper sx={{ p: 2.5, borderRadius: 3 }}>
-              <Typography fontWeight={700} sx={{ mb: 1.5 }}>⭐ Rating</Typography>
+              <Typography fontWeight={700} sx={{ mb: 1.5 }}> Rating</Typography>
               <Typography sx={{ fontSize: '42px', fontWeight: 900, color: 'warning.main', lineHeight: 1 }}>{ratings.average.toFixed(1)}</Typography>
               <Typography variant="caption" color="text.secondary">{ratings.total} total reviews</Typography>
               {[5,4,3,2,1].map((star) => {
@@ -573,7 +573,7 @@ export default function Dashboard() {
                 const total = Object.values(ratings.distribution).reduce((a,b)=>a+b,0);
                 return (
                   <Box key={star} sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: .8 }}>
-                    <Typography sx={{ fontSize: '11px', color: 'warning.main', minWidth: 18 }}>{'★'.repeat(star)}</Typography>
+                    <Typography sx={{ fontSize: '11px', color: 'warning.main', minWidth: 18 }}>{''.repeat(star)}</Typography>
                     <LinearProgress variant="determinate" value={total > 0 ? (count/total)*100 : 0}
                       sx={{ flex: 1, height: 6, borderRadius: 3, '& .MuiLinearProgress-bar': { borderRadius: 3 } }} />
                     <Typography variant="caption" color="text.disabled" sx={{ minWidth: 18 }}>{count}</Typography>
@@ -589,7 +589,7 @@ export default function Dashboard() {
           {/* 7-Day Chart */}
           <Grid item xs={12} md={8}>
             <Paper sx={{ p: 2.5, borderRadius: 3 }}>
-              <Typography fontWeight={700} sx={{ mb: 2 }}>📈 7-Day Fulfillment</Typography>
+              <Typography fontWeight={700} sx={{ mb: 2 }}> 7-Day Fulfillment</Typography>
               <Box sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-around', height: 160, gap: 1 }}>
                 {sevenDaySeries.map((d) => {
                   const maxVal = Math.max(...sevenDaySeries.map(x => x.fulfilled), 1);
@@ -612,7 +612,7 @@ export default function Dashboard() {
           {/* Recent Activity */}
           <Grid item xs={12} md={4}>
             <Paper sx={{ p: 2.5, borderRadius: 3 }}>
-              <Typography fontWeight={700} sx={{ mb: 1.5 }}>🔔 Recent Activity</Typography>
+              <Typography fontWeight={700} sx={{ mb: 1.5 }}> Recent Activity</Typography>
               <Box sx={{ maxHeight: 250, overflowY: 'auto' }}>
                 {recentActivity.length === 0 ? (
                   <Typography variant="caption" color="text.secondary">No recent activity</Typography>
@@ -625,7 +625,7 @@ export default function Dashboard() {
                       }} />
                       <Box sx={{ flex: 1 }}>
                         <Typography variant="caption" fontWeight={600}>
-                          {activity.cylinderType} ×{activity.quantity} {activity.status.charAt(0).toUpperCase() + activity.status.slice(1)}
+                          {activity.cylinderType} {activity.quantity} {activity.status.charAt(0).toUpperCase() + activity.status.slice(1)}
                         </Typography>
                         <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                           {activity.address}
