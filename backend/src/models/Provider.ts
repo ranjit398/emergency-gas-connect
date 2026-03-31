@@ -1,5 +1,5 @@
 ﻿import mongoose, { Schema, Document } from 'mongoose';
-import { BusinessType, GeoLocation } from './types';
+import { BusinessType, GeoLocation } from '@types';
 
 export interface IProvider extends Document {
   userId: mongoose.Types.ObjectId;
@@ -34,7 +34,7 @@ export interface IProvider extends Document {
   updatedAt: Date;
 }
 
-import { CylinderType } from './types';
+import { CylinderType } from '@types';
 
 const providerSchema = new Schema<IProvider>(
   {
