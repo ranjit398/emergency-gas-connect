@@ -1,6 +1,6 @@
-﻿import Profile, { IProfile } from './models/Profile';
-import User from './models/User';
-import { ValidationError, NotFoundError } from './middleware/errorHandler';
+﻿import Profile, { IProfile } from '@models/Profile';
+import User from '@models/User';
+import { ValidationError, NotFoundError } from '@middleware/errorHandler';
 
 export class ProfileService {
   async getProfile(userId: string): Promise<IProfile> {

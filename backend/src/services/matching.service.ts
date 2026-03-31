@@ -10,19 +10,19 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import mongoose from 'mongoose';
-import Profile from './models/Profile';
-import EmergencyRequest from './models/EmergencyRequest';
-import { NotFoundError, ValidationError } from './middleware/errorHandler';
+import Profile from '@models/Profile';
+import EmergencyRequest from '@models/EmergencyRequest';
+import { NotFoundError, ValidationError } from '@middleware/errorHandler';
 import {
   buildRecommendations,
   HelperRecommendation,
-} from './recommendation.service';
+} from '@services/recommendation.service';
 import {
   calculatePriorityScore,
   getPriorityLevel,
   PriorityLevel,
-} from './priority.service';
-import logger from './utils/logger';
+} from '@services/priority.service';
+import logger from '@utils/logger';
 
 // ── Haversine distance (km) ────────────────────────────────────────────────
 export function haversineKm(

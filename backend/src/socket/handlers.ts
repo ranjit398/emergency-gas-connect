@@ -1,9 +1,9 @@
 ﻿import { Server, Socket } from 'socket.io';
-import { JWTPayload } from './types';
-import { verifyToken } from './utils/jwt';
-import messageService from './services/MessageService';
-import { registerChatHandlers, getOnlineUsers } from './socket/chat.handler';
-import logger from './utils/logger';
+import { JWTPayload } from '@types';
+import { verifyToken } from '@utils/jwt';
+import messageService from '@services/MessageService';
+import { registerChatHandlers, getOnlineUsers } from '@socket/chat.handler';
+import logger from '@utils/logger';
 
 interface AuthenticatedSocket extends Socket {
   userId?: string;

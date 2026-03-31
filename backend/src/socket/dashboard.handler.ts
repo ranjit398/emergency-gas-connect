@@ -3,7 +3,7 @@
 // Emits events when requests are created, updated, or helper status changes
 
 import { Server } from 'socket.io';
-import logger from './utils/logger';
+import logger from '@utils/logger';
 
 /**
  * Emit dashboard update to all providers

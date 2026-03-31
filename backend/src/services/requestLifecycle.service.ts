@@ -4,10 +4,10 @@
 // Handles status transitions, auto-expiration, and timeline tracking
 // ─────────────────────────────────────────────────────────────────────────────
 
-import EmergencyRequest, { IEmergencyRequest } from './models/EmergencyRequest';
-import logger from './utils/logger';
-import { broadcastActivity, notifyUser, notifyRoom } from './socket/handlers';
-import { emitDashboardUpdate, emitRequestUpdate } from './socket/dashboard.handler';
+import EmergencyRequest, { IEmergencyRequest } from '@models/EmergencyRequest';
+import logger from '@utils/logger';
+import { broadcastActivity, notifyUser, notifyRoom } from '@socket/handlers';
+import { emitDashboardUpdate, emitRequestUpdate } from '@socket/dashboard.handler';
 import { Server as SocketIOServer } from 'socket.io';
 
 let io: SocketIOServer;

@@ -1,5 +1,5 @@
-﻿import Message, { IMessage } from './models/Message';
-import { NotFoundError } from './middleware/errorHandler';
+﻿import Message, { IMessage } from '@models/Message';
+import { NotFoundError } from '@middleware/errorHandler';
 import mongoose from 'mongoose';
 
 export class MessageService {

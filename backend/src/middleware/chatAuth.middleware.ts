@@ -5,8 +5,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { Request, Response, NextFunction } from 'express';
-import EmergencyRequest from './models/EmergencyRequest';
-import logger from './utils/logger';
+import EmergencyRequest from '@models/EmergencyRequest';
+import logger from '@utils/logger';
 
 declare global {
   namespace Express {

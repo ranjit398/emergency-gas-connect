@@ -1,8 +1,8 @@
 ﻿// backend/src/routes/smart/match.routes.ts
 
 import express, { Router } from 'express';
-import matchingController from './controllers/smart/matching.controller';
-import { authMiddleware, requireRole } from './middleware/auth';
+import matchingController from '@controllers/smart/matching.controller';
+import { authMiddleware, requireRole } from '@middleware/auth';
 
 const router: Router = express.Router();
 

@@ -3,11 +3,11 @@
 // Real-time aggregated stats for the provider dashboard
 
 import mongoose from 'mongoose';
-import Provider from './models/Provider';
-import EmergencyRequest from './models/EmergencyRequest';
-import Profile from './models/Profile';
-import Rating from './models/Rating';
-import { NotFoundError } from './middleware/errorHandler';
+import Provider from '@models/Provider';
+import EmergencyRequest from '@models/EmergencyRequest';
+import Profile from '@models/Profile';
+import Rating from '@models/Rating';
+import { NotFoundError } from '@middleware/errorHandler';
 
 function startOfDay() {
   const d = new Date(); d.setHours(0, 0, 0, 0); return d;

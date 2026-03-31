@@ -8,34 +8,34 @@ import compression from 'compression';
 import helmet from 'helmet';
 import mongoSanitize from 'express-mongo-sanitize';
 import hpp from 'hpp';
-import connectDatabase from './config/database';
-import config from './config/index';
-import logger from './utils/logger';
-import { requestLogger } from './middleware/index';
-import errorHandler from './middleware/errorHandler';
-import { apiLimiter, authLimiter } from './middleware/rateLimiter';
-import { socketHandler } from './socket/handlers';
+import connectDatabase from '@config/database';
+import config from '@config/index';
+import logger from '@utils/logger';
+import { requestLogger } from '@middleware/index';
+import errorHandler from '@middleware/errorHandler';
+import { apiLimiter, authLimiter } from '@middleware/rateLimiter';
+import { socketHandler } from '@socket/handlers';
 
 // Existing routes
-import authRoutes       from './routes/auth';
-import profileRoutes    from './routes/profile';
-import requestRoutes    from './routes/requests';
-import providerRoutes   from './routes/providers';
-import providerDashboardRoutes from './routes/provider-dashboard';
-import messageRoutes    from './routes/messages';
-import ratingRoutes     from './routes/ratings';
-import notificationRoutes from './routes/notifications';
+import authRoutes       from '@routes/auth';
+import profileRoutes    from '@routes/profile';
+import requestRoutes    from '@routes/requests';
+import providerRoutes   from '@routes/providers';
+import providerDashboardRoutes from '@routes/provider-dashboard';
+import messageRoutes    from '@routes/messages';
+import ratingRoutes     from '@routes/ratings';
+import notificationRoutes from '@routes/notifications';
 
 // Smart matching routes
-import matchRoutes from './routes/smart/match.routes';
+import matchRoutes from '@routes/smart/match.routes';
 
 // ── NEW: Live data routes ───────────────────────────────────────────────────
-import liveRoutes from './routes/live';
+import liveRoutes from '@routes/live';
 
 // ── NEW: Inject io into request service ───────────────────────────────────
-import { setSocketIO } from './services/EmergencyRequestService';
-import { setLifecycleIO } from './services/requestLifecycle.service';
-import { setReassignmentIO } from './services/reassignment.service';
+import { setSocketIO } from '@services/EmergencyRequestService';
+import { setLifecycleIO } from '@services/requestLifecycle.service';
+import { setReassignmentIO } from '@services/reassignment.service';
 
 // ─────────────────────────────────────────────────────────────────────────────
 

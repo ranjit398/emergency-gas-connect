@@ -1,8 +1,8 @@
 ﻿import { Request, Response, NextFunction } from 'express';
 import { body } from 'express-validator';
-import authService from './services/AuthService';
-import { asyncHandler } from './middleware/index';
-import { success } from './utils/response';
+import authService from '@services/AuthService';
+import { asyncHandler } from '@middleware/index';
+import { success } from '@utils/response';
 
 export class AuthController {
   register = asyncHandler(async (req: Request, res: Response) => {

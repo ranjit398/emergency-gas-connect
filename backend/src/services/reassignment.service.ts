@@ -4,10 +4,10 @@
 // Handles re-requesting when helper doesn't respond/accept
 // ─────────────────────────────────────────────────────────────────────────────
 
-import EmergencyRequest, { IEmergencyRequest } from './models/EmergencyRequest';
-import ProviderService from './services/ProviderService';
-import logger from './utils/logger';
-import { notifyUser, broadcastActivity } from './socket/handlers';
+import EmergencyRequest, { IEmergencyRequest } from '@models/EmergencyRequest';
+import ProviderService from '@services/ProviderService';
+import logger from '@utils/logger';
+import { notifyUser, broadcastActivity } from '@socket/handlers';
 import { Server as SocketIOServer } from 'socket.io';
 
 let io: SocketIOServer;

@@ -1,8 +1,8 @@
 ﻿import express, { Router } from 'express';
-import { authMiddleware } from './middleware/auth';
-import { asyncHandler } from './middleware/index';
-import notificationService from './services/NotificationService';
-import { success, paginated } from './utils/response';
+import { authMiddleware } from '@middleware/auth';
+import { asyncHandler } from '@middleware/index';
+import notificationService from '@services/NotificationService';
+import { success, paginated } from '@utils/response';
 
 const router: Router = express.Router();
 router.use(authMiddleware);

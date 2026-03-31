@@ -1,8 +1,8 @@
 ﻿import { Request, Response } from 'express';
 import { body } from 'express-validator';
-import ratingService from './services/RatingService';
-import { asyncHandler } from './middleware/index';
-import { success, paginated } from './utils/response';
+import ratingService from '@services/RatingService';
+import { asyncHandler } from '@middleware/index';
+import { success, paginated } from '@utils/response';
 
 export class RatingController {
   createRating = asyncHandler(async (req: Request, res: Response) => {

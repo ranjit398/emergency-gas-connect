@@ -4,8 +4,8 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import config from './config/index';
-import logger from './utils/logger';
+import config from '@config/index';
+import logger from '@utils/logger';
 
 /**
  * Interface for application errors

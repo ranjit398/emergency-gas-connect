@@ -3,11 +3,11 @@
 // Handles message persistence and retrieval for real-time chat
 
 import mongoose from 'mongoose';
-import Message, { IMessage } from './models/Message';
-import Profile from './models/Profile';
-import User from './models/User';
-import { NotFoundError } from './middleware/errorHandler';
-import logger from './utils/logger';
+import Message, { IMessage } from '@models/Message';
+import Profile from '@models/Profile';
+import User from '@models/User';
+import { NotFoundError } from '@middleware/errorHandler';
+import logger from '@utils/logger';
 
 // ── Conversation participant lookup pipeline ──────────────────────────────────
 // Joins Profile for fullName since it's not in User

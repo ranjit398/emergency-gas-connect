@@ -5,13 +5,13 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import mongoose from 'mongoose';
-import Provider from './models/Provider';
-import EmergencyRequest from './models/EmergencyRequest';
-import Profile from './models/Profile';
-import Rating from './models/Rating';
-import { NotFoundError, ValidationError } from './middleware/errorHandler';
-import { haversineKm } from './services/matching.service';
-import logger from './utils/logger';
+import Provider from '@models/Provider';
+import EmergencyRequest from '@models/EmergencyRequest';
+import Profile from '@models/Profile';
+import Rating from '@models/Rating';
+import { NotFoundError, ValidationError } from '@middleware/errorHandler';
+import { haversineKm } from '@services/matching.service';
+import logger from '@utils/logger';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 

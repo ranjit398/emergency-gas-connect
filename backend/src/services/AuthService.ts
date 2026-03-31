@@ -1,9 +1,9 @@
-﻿import User, { IUser } from './models/User';
-import Profile, { IProfile } from './models/Profile';
-import Provider from './models/Provider';
-import { generateToken, generateRefreshToken, verifyRefreshToken } from './utils/jwt';
-import { ValidationError, UnauthorizedError } from './middleware/errorHandler';
-import logger from './utils/logger';
+﻿import User, { IUser } from '@models/User';
+import Profile, { IProfile } from '@models/Profile';
+import Provider from '@models/Provider';
+import { generateToken, generateRefreshToken, verifyRefreshToken } from '@utils/jwt';
+import { ValidationError, UnauthorizedError } from '@middleware/errorHandler';
+import logger from '@utils/logger';
 
 // Simple in-memory token blacklist — replace with Redis for multi-instance prod
 const tokenBlacklist = new Set<string>();

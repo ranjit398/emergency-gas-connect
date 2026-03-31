@@ -1,5 +1,5 @@
 ﻿import { Request, Response, NextFunction } from 'express';
-import { validateMongoId } from './utils/validation';
+import { validateMongoId } from '@utils/validation';
 
 export const validateObjectId = (paramName: string) => {
   return (req: Request, res: Response, next: NextFunction): void => {

@@ -3,13 +3,13 @@
 // Returns real MongoDB data for Provider, Helper, and Seeker views
 
 import mongoose from 'mongoose';
-import EmergencyRequest from './models/EmergencyRequest';
-import Profile from './models/Profile';
-import Provider from './models/Provider';
-import Message from './models/Message';
-import Rating from './models/Rating';
-import User from './models/User';
-import { NotFoundError } from './middleware/errorHandler';
+import EmergencyRequest from '@models/EmergencyRequest';
+import Profile from '@models/Profile';
+import Provider from '@models/Provider';
+import Message from '@models/Message';
+import Rating from '@models/Rating';
+import User from '@models/User';
+import { NotFoundError } from '@middleware/errorHandler';
 
 // ── Helper functions ──────────────────────────────────────────────────────────
 function startOfDay() { const d = new Date(); d.setHours(0,0,0,0); return d; }

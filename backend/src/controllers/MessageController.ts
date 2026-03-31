@@ -1,8 +1,8 @@
 ﻿import { Request, Response } from 'express';
 import { body } from 'express-validator';
-import messageService from './services/MessageService';
-import { asyncHandler } from './middleware/index';
-import { success, paginated } from './utils/response';
+import messageService from '@services/MessageService';
+import { asyncHandler } from '@middleware/index';
+import { success, paginated } from '@utils/response';
 
 export class MessageController {
   sendMessage = asyncHandler(async (req: Request, res: Response) => {
