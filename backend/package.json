@@ -5,7 +5,7 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "nodemon",
-    "build": "tsc && node scripts/fix-paths.js",
+    "build": "tsc && npx tsc-alias",
     "start": "node dist/server.js",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix"
@@ -41,7 +41,7 @@
     "eslint": "^8.40.0",
     "nodemon": "^3.0.0",
     "ts-node": "^10.9.1",
-    "tsc-alias": "^1.8.8",
+    "tsc-alias": "^1.8.16",
     "typescript": "^5.0.0"
   },
   "engines": {
