@@ -1,4 +1,4 @@
-import {
+﻿import {
   Card, CardContent, Typography, Chip, Box,
   Button, Avatar,
 } from '@mui/material';
@@ -94,7 +94,7 @@ export default function RequestCard({
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
           <Flame size={16} color="#f97316" />
           <Typography variant="body1" sx={{ fontWeight: 500 }}>
-            {request.cylinderType} Cylinder × {request.quantity ?? 1}
+            {request.cylinderType} Cylinder  {request.quantity ?? 1}
           </Typography>
         </Box>
 
@@ -137,7 +137,7 @@ export default function RequestCard({
               sx={{ borderRadius: 2, flex: 1 }}
               color={request.priorityLevel === 'critical' ? 'error' : 'primary'}
             >
-              {request.priorityLevel === 'critical' ? '🚨 Accept Now' : 'Accept'}
+              {request.priorityLevel === 'critical' ? ' Accept Now' : 'Accept'}
             </Button>
           )}
 

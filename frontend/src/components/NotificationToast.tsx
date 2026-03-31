@@ -1,4 +1,4 @@
-// frontend/src/components/NotificationToast.tsx
+﻿// frontend/src/components/NotificationToast.tsx
 // Production-grade notification system with Toastify
 // Handles all Socket.IO real-time events
 
@@ -70,32 +70,32 @@ export class NotificationManager {
 export const RequestNotifications = {
   accepted: (helperName: string, estimatedMin?: number) => {
     NotificationManager.success(
-      `✅ ${helperName} accepted your request${estimatedMin ? ` - ${estimatedMin} min away` : ''}`,
+      ` ${helperName} accepted your request${estimatedMin ? ` - ${estimatedMin} min away` : ''}`,
       { autoClose: 5000 }
     );
   },
 
   inProgress: (helperName: string) => {
-    NotificationManager.info(`🚀 ${helperName} is on the way`, { autoClose: 4000 });
+    NotificationManager.info(` ${helperName} is on the way`, { autoClose: 4000 });
   },
 
   completed: (helperName: string) => {
     NotificationManager.success(
-      `✨ Service completed! Please rate ${helperName}`,
+      ` Service completed! Please rate ${helperName}`,
       { autoClose: 6000 }
     );
   },
 
   reassigned: (attempt: number) => {
     NotificationManager.info(
-      `🔄 Looking for a new helper (Attempt ${attempt}/3)`,
+      ` Looking for a new helper (Attempt ${attempt}/3)`,
       { autoClose: 3000 }
     );
   },
 
   autoExpired: () => {
     NotificationManager.error(
-      '⏱️ No helpers available. Request expired. Please try again.',
+      ' No helpers available. Request expired. Please try again.',
       { autoClose: 5000 }
     );
   },
@@ -106,21 +106,21 @@ export const RequestNotifications = {
 
   message: (senderName: string, preview: string) => {
     NotificationManager.info(
-      `💬 ${senderName}: ${preview}`,
+      ` ${senderName}: ${preview}`,
       { autoClose: 5000 }
     );
   },
 
   helperAvailable: () => {
     NotificationManager.success(
-      '🟢 You are now online and can receive requests',
+      ' You are now online and can receive requests',
       { autoClose: 3000 }
     );
   },
 
   helperUnavailable: () => {
     NotificationManager.warning(
-      '🔴 You are now unavailable for new requests',
+      ' You are now unavailable for new requests',
       { autoClose: 3000 }
     );
   },

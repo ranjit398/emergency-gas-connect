@@ -1,4 +1,4 @@
-// frontend/src/hooks/useProviderStats.ts
+﻿// frontend/src/hooks/useProviderStats.ts
 // Custom hook for real-time provider dashboard stats with Socket.IO
 // Fetches initial data and listens for real-time updates
 
@@ -125,7 +125,7 @@ export const useProviderStats = ({
             const today = updated.sevenDaySeries[updated.sevenDaySeries.length - 1];
             if (today) {
               today.fulfilled = (today.fulfilled || 0) + 1;
-              today.revenue = (today.revenue || 0) + 850; // Assume ₹850 per delivery
+              today.revenue = (today.revenue || 0) + 850; // Assume 850 per delivery
             }
           }
         } else if (data.type === 'REQUEST_CANCELLED') {

@@ -1,4 +1,4 @@
-// components/smart/RecommendationPanel.tsx
+﻿// components/smart/RecommendationPanel.tsx
 // Drop into: frontend/src/components/smart/RecommendationPanel.tsx
 
 import { useState } from 'react';
@@ -47,11 +47,11 @@ export default function RecommendationPanel({
       id: 'top-helper',
       type: 'helper',
       title: topHelper.fullName,
-      subtitle: `${topHelper.estimatedArrivalMin ? `~${topHelper.estimatedArrivalMin}min arrival` : 'Nearby'} · ${topHelper.ratings.toFixed(1)}⭐ · ${topHelper.completedRequests} helped`,
+      subtitle: `${topHelper.estimatedArrivalMin ? `~${topHelper.estimatedArrivalMin}min arrival` : 'Nearby'}  ${topHelper.ratings.toFixed(1)}  ${topHelper.completedRequests} helped`,
       reason: topHelper.badges.includes('fastest') ? 'Fastest responder in your area' :
               topHelper.badges.includes('nearest') ? 'Closest verified helper to you' :
               'Highest match score for your request',
-      reasonIcon: topHelper.badges.includes('fastest') ? '⚡' : topHelper.badges.includes('nearest') ? '📍' : '🎯',
+      reasonIcon: topHelper.badges.includes('fastest') ? '' : topHelper.badges.includes('nearest') ? '' : '',
       cta: 'Contact Now',
       ctaVariant: 'primary',
       data: topHelper,
@@ -64,9 +64,9 @@ export default function RecommendationPanel({
       id: 'nearest-provider',
       type: 'provider',
       title: nearestProvider.businessName,
-      subtitle: `${nearestProvider.distanceKm?.toFixed(1) ?? '?'}km away · ${nearestProvider.address}`,
+      subtitle: `${nearestProvider.distanceKm?.toFixed(1) ?? '?'}km away  ${nearestProvider.address}`,
       reason: 'Verified agency with fastest stock availability',
-      reasonIcon: '🏪',
+      reasonIcon: '',
       cta: 'Call Agency',
       ctaVariant: 'secondary',
       data: null,
@@ -81,7 +81,7 @@ export default function RecommendationPanel({
       title: 'View Live Map',
       subtitle: 'See all helpers and providers near you in real-time',
       reason: 'Track positions and pick the closest option',
-      reasonIcon: '🗺️',
+      reasonIcon: '',
       cta: 'Open Map',
       ctaVariant: 'secondary',
       data: null,

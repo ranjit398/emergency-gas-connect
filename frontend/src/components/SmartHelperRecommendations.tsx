@@ -1,4 +1,4 @@
-// frontend/src/components/SmartHelperRecommendations.tsx
+﻿// frontend/src/components/SmartHelperRecommendations.tsx
 // Display smart-tagged helper recommendations
 
 import React, { useEffect, useState } from 'react';
@@ -48,7 +48,7 @@ const HelperCard: React.FC<{
           <span className="font-semibold text-gray-900">{helper.rating.toFixed(1)}</span>
         </div>
         <span className={`text-xs font-medium ${helper.isAvailable ? 'text-green-600' : 'text-gray-500'}`}>
-          {helper.isAvailable ? '🟢 Online' : '⚫ Offline'}
+          {helper.isAvailable ? ' Online' : ' Offline'}
         </span>
       </div>
     </div>
@@ -181,7 +181,7 @@ export const SmartHelperRecommendations: React.FC<SmartHelperRecommendationsProp
           <div className="flex items-center justify-between">
             <div>
               <p className="font-bold text-gray-900">{helpers[0].fullName}</p>
-              <p className="text-sm text-gray-600">⭐ {helpers[0].rating.toFixed(1)} • 📍 {helpers[0].distanceKm.toFixed(1)}km</p>
+              <p className="text-sm text-gray-600"> {helpers[0].rating.toFixed(1)}   {helpers[0].distanceKm.toFixed(1)}km</p>
             </div>
             <button
               onClick={() => onSelectHelper?.(helpers[0]._id, helpers[0].fullName)}

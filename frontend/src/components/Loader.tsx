@@ -1,4 +1,4 @@
-import { CircularProgress, Box } from '@mui/material';
+﻿import { CircularProgress, Box } from '@mui/material';
 
 interface LoaderProps {
   size?: number;

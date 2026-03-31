@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import {
   Container, Box, IconButton, Typography, Paper,
 } from '@mui/material';
@@ -89,7 +89,7 @@ export default function Chat() {
             receiverAvatar={receiverAvatar}
             cylinderType={request?.cylinderType}
             requestStatus={request?.status}
-            compact={true}   // no header — we already have one above
+            compact={true}   // no header  we already have one above
             height="100%"
           />
         </Box>

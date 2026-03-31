@@ -1,4 +1,4 @@
-// pages/SmartDashboard.tsx
+﻿// pages/SmartDashboard.tsx
 // Drop into: frontend/src/pages/SmartDashboard.tsx
 // Add route in App.tsx: <Route path="/smart" element={<ProtectedRoute><><Navbar /><SmartDashboard /></></ProtectedRoute>} />
 
@@ -28,7 +28,7 @@ import PriorityBadge from '../components/smart/PriorityBadge';
 import type { RawRequest } from '../hooks/usePriorityEngine';
 import type { HelperProfile } from '../hooks/useSmartMatch';
 
-// ── Mock helper data (replace with real API when available)
+//  Mock helper data (replace with real API when available)
 const MOCK_HELPERS: HelperProfile[] = [
   {
     id: 'h1', fullName: 'Suresh Kumar', avatarUrl: null,
@@ -56,7 +56,7 @@ const MOCK_HELPERS: HelperProfile[] = [
   },
 ];
 
-// ── Mock provider
+//  Mock provider
 const MOCK_PROVIDER = {
   id: 'p1',
   businessName: 'Krishna Gas Agency',
@@ -80,12 +80,12 @@ export default function SmartDashboard() {
   const [activeTab, setActiveTab] = useState(0);
   const [filterLevel, setFilterLevel] = useState<'all' | 'high' | 'medium' | 'low'>('all');
 
-  // ── Core hooks
+  //  Core hooks
   const scoredRequests = usePriorityEngine(rawRequests, { userLocation, sortBy: sortMode });
   const matchedHelpers = useSmartMatch(MOCK_HELPERS, userLocation, 4);
   const activity = useLiveActivity({ maxItems: 12, intervalMs: 5000 });
 
-  // ── Load data
+  //  Load data
   const loadRequests = useCallback(async () => {
     try {
       const { data } = await requestsApi.getPending();
@@ -109,12 +109,12 @@ export default function SmartDashboard() {
     }
   }, [loadRequests]);
 
-  // ── Filter requests
+  //  Filter requests
   const filtered = filterLevel === 'all'
     ? scoredRequests
     : scoredRequests.filter((r) => r.priority.level === filterLevel);
 
-  // ── Stats
+  //  Stats
   const stats = {
     total: scoredRequests.length,
     high: scoredRequests.filter((r) => r.priority.level === 'high').length,
@@ -136,7 +136,7 @@ export default function SmartDashboard() {
 
   return (
     <Box sx={{ minHeight: '100vh', background: '#0a0a0b', pb: 10 }}>
-      {/* ── Header ─────────────────────────────────────────── */}
+      {/*  Header  */}
       <Box sx={{
         background: 'linear-gradient(135deg, rgba(249,115,22,0.08) 0%, rgba(10,10,11,0) 60%)',
         borderBottom: '1px solid rgba(255,255,255,0.05)',
@@ -164,7 +164,7 @@ export default function SmartDashboard() {
                 </Typography>
               </Box>
               <Typography sx={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)' }}>
-                AI-prioritized · Real-time matched · {profile?.role === 'helper' ? 'Ready to help' : 'Find help fast'}
+                AI-prioritized  Real-time matched  {profile?.role === 'helper' ? 'Ready to help' : 'Find help fast'}
               </Typography>
             </Box>
 
@@ -194,7 +194,7 @@ export default function SmartDashboard() {
       <Box sx={{ maxWidth: 1280, mx: 'auto', px: { xs: 2, sm: 4 }, pt: 3 }}>
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: 'repeat(12, 1fr)' }, gap: 3 }}>
 
-          {/* ── LEFT COLUMN: Requests ──────────────────────── */}
+          {/*  LEFT COLUMN: Requests  */}
           <Box sx={{ gridColumn: { xs: 'span 1', lg: 'span 7' } }}>
 
             {/* Sort controls */}
@@ -232,7 +232,7 @@ export default function SmartDashboard() {
                       '&:hover': { background: sortMode === mode ? undefined : 'rgba(255,255,255,0.09)' },
                     }}
                   >
-                    {mode === 'priority' ? '🎯' : mode === 'distance' ? '📍' : '⏱'} {mode}
+                    {mode === 'priority' ? '' : mode === 'distance' ? '' : ''} {mode}
                   </Box>
                 ))}
               </Box>
@@ -250,7 +250,7 @@ export default function SmartDashboard() {
                     border: '1px solid rgba(255,255,255,0.06)',
                     borderRadius: 3,
                   }}>
-                    <Typography sx={{ fontSize: '32px', mb: 2 }}>🟢</Typography>
+                    <Typography sx={{ fontSize: '32px', mb: 2 }}></Typography>
                     <Typography sx={{ fontSize: '16px', fontWeight: 700, color: '#fff', mb: 1 }}>
                       No {filterLevel !== 'all' ? filterLevel : ''} priority requests
                     </Typography>
@@ -262,7 +262,7 @@ export default function SmartDashboard() {
                         onClick={() => setFilterLevel('all')}
                         sx={{ mt: 2, color: '#f97316', fontSize: '13px' }}
                       >
-                        Show All →
+                        Show All 
                       </Button>
                     )}
                   </Box>
@@ -282,7 +282,7 @@ export default function SmartDashboard() {
             </AnimatePresence>
           </Box>
 
-          {/* ── RIGHT COLUMN: Smart panels ─────────────────── */}
+          {/*  RIGHT COLUMN: Smart panels  */}
           <Box sx={{ gridColumn: { xs: 'span 1', lg: 'span 5' } }}>
 
             {/* Tabs: Match / Map / Activity */}
@@ -316,13 +316,13 @@ export default function SmartDashboard() {
                   },
                 }}
               >
-                <Tab label="⚡ Best Matches" />
-                <Tab label="🗺️ Live Map" />
-                <Tab label="📡 Activity" />
+                <Tab label=" Best Matches" />
+                <Tab label=" Live Map" />
+                <Tab label=" Activity" />
               </Tabs>
             </Box>
 
-            {/* AI Recommendation panel — always visible */}
+            {/* AI Recommendation panel  always visible */}
             <RecommendationPanel
               topHelper={matchedHelpers[0] ?? null}
               nearestProvider={MOCK_PROVIDER}
@@ -335,7 +335,7 @@ export default function SmartDashboard() {
             {/* Tab content */}
             <AnimatePresence mode="wait">
 
-              {/* ── Best Matches ── */}
+              {/*  Best Matches  */}
               {activeTab === 0 && (
                 <motion.div
                   key="matches"
@@ -409,7 +409,7 @@ export default function SmartDashboard() {
                 </motion.div>
               )}
 
-              {/* ── Live Map ── */}
+              {/*  Live Map  */}
               {activeTab === 1 && (
                 <motion.div
                   key="map"
@@ -451,7 +451,7 @@ export default function SmartDashboard() {
                 </motion.div>
               )}
 
-              {/* ── Activity Feed ── */}
+              {/*  Activity Feed  */}
               {activeTab === 2 && (
                 <motion.div
                   key="activity"
@@ -475,7 +475,7 @@ export default function SmartDashboard() {
         </Box>
       </Box>
 
-      {/* ── Sticky mobile emergency button ─────────────────── */}
+      {/*  Sticky mobile emergency button  */}
       <Box sx={{
         display: { xs: 'flex', sm: 'none' },
         position: 'fixed',
@@ -498,7 +498,7 @@ export default function SmartDashboard() {
             '&:hover': { background: 'linear-gradient(135deg, #dc2626, #ea580c)' },
           }}
         >
-          🚨 Request Emergency Help
+           Request Emergency Help
         </Button>
       </Box>
     </Box>

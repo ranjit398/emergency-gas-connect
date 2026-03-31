@@ -1,4 +1,4 @@
-import { io, Socket } from 'socket.io-client';
+﻿import { io, Socket } from 'socket.io-client';
 import { tokenStorage } from './api';
 
 // Connect to backend - in dev use localhost:5002, production will use same host

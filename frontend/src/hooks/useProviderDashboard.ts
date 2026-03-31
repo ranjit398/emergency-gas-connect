@@ -1,4 +1,4 @@
-// frontend/src/hooks/useProviderDashboard.ts
+﻿// frontend/src/hooks/useProviderDashboard.ts
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { providerDashboardApi } from '.././lib/providerApi';
@@ -148,7 +148,7 @@ export function useProviderDashboard(autoRefreshMs = 30_000) {
 
   const markCollected = async (requestId: string) => {
     await providerDashboardApi.markCollected(requestId);
-    toast.success('Marked as collected — inventory reduced');
+    toast.success('Marked as collected  inventory reduced');
     await loadAll(true);
   };
 

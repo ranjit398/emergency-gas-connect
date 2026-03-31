@@ -1,4 +1,4 @@
-// components/smart/SmartMatchCard.tsx
+﻿// components/smart/SmartMatchCard.tsx
 // Drop into: frontend/src/components/smart/SmartMatchCard.tsx
 
 import { Box, Typography, Avatar, LinearProgress, Button } from '@mui/material';
@@ -24,11 +24,11 @@ const BADGE_STYLES: Record<string, { bg: string; border: string; text: string; i
   },
   trusted: {
     bg: 'rgba(34,197,94,0.10)', border: 'rgba(34,197,94,0.30)',
-    text: '#4ade80', icon: <span style={{ fontSize: 10 }}>🛡️</span>,
+    text: '#4ade80', icon: <span style={{ fontSize: 10 }}></span>,
   },
   experienced: {
     bg: 'rgba(16,185,129,0.10)', border: 'rgba(16,185,129,0.28)',
-    text: '#34d399', icon: <span style={{ fontSize: 10 }}>✅</span>,
+    text: '#34d399', icon: <span style={{ fontSize: 10 }}></span>,
   },
   top_rated: {
     bg: 'rgba(245,158,11,0.12)', border: 'rgba(245,158,11,0.35)',
@@ -258,7 +258,7 @@ export default function SmartMatchCard({
                 transition: 'all 0.2s',
               }}
             >
-              {isTopPick ? '⚡ Contact Best Match' : 'Contact Helper'}
+              {isTopPick ? ' Contact Best Match' : 'Contact Helper'}
             </Button>
           </Box>
         )}

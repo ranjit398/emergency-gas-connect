@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
 import {
   Container,
   Grid,
@@ -137,7 +137,7 @@ export default function Home() {
           </Typography>
         </Box>
 
-        {/* ✅ ROLE-BASED ALERTS */}
+        {/*  ROLE-BASED ALERTS */}
         {profile?.role === 'seeker' && (
           <Alert severity="info" sx={{ mb: 3 }}>
             You are viewing requests as a <strong>Seeker</strong>. Visit your <strong>Dashboard</strong> to create a new emergency request.
@@ -156,7 +156,7 @@ export default function Home() {
           </Alert>
         )}
 
-        {/* ✅ MAIN GRID */}
+        {/*  MAIN GRID */}
         <Grid container spacing={3}>
           {/* @ts-expect-error - MUI Grid v7 item prop type compatibility */}
           <Grid item xs={12} md={8}>

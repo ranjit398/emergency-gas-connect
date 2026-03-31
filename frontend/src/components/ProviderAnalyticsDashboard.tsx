@@ -1,4 +1,4 @@
-// frontend/src/components/ProviderAnalyticsDashboard.tsx
+﻿// frontend/src/components/ProviderAnalyticsDashboard.tsx
 // Production-grade analytics dashboard for providers with REAL-TIME Socket.IO updates
 
 import React, { useEffect, useState } from 'react';
@@ -64,7 +64,7 @@ const MetricCard: React.FC<{
     </div>
     {trend !== undefined && (
       <div className={`text-xs font-semibold mt-3 ${trend > 0 ? 'text-green-600' : 'text-red-600'}`}>
-        {trend > 0 ? '📈' : '📉'} {Math.abs(trend)}% vs last period
+        {trend > 0 ? '' : ''} {Math.abs(trend)}% vs last period
       </div>
     )}
   </div>
@@ -173,7 +173,7 @@ export const ProviderAnalyticsDashboard: React.FC<ProviderAnalyticsDashboardProp
         <div className="flex items-center gap-3">
           <div className={`w-3 h-3 rounded-full ${isLive ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />
           <span className="text-sm font-medium text-gray-700">
-            {isLive ? '🔴 Live Updates' : 'ℹ️ Updates paused'}
+            {isLive ? ' Live Updates' : ' Updates paused'}
           </span>
           {dashboardStats?.fetchedAt && (
             <span className="text-xs text-gray-500">
@@ -199,28 +199,28 @@ export const ProviderAnalyticsDashboard: React.FC<ProviderAnalyticsDashboardProp
           {/* Summary Section */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <MetricCard
-              icon="📊"
+              icon=""
               label="Total Requests"
               value={analytics.summary.totalRequests}
               subtext={`${analytics.summary.completedRequests} completed`}
               color="bg-blue-50"
             />
             <MetricCard
-              icon="✅"
+              icon=""
               label="Success Rate"
               value={`${analytics.summary.successRate.toFixed(1)}%`}
               subtext={`${analytics.summary.completedRequests} successful`}
               color="bg-green-50"
             />
             <MetricCard
-              icon="⚡"
+              icon=""
               label="Active Requests"
               value={analytics.summary.activeRequests}
               subtext="In progress"
               color="bg-purple-50"
             />
             <MetricCard
-              icon="⏱️"
+              icon=""
               label="Avg Response"
               value={`${Math.round(analytics.performance.avgResponseTime / 60)}m`}
               subtext="Time to accept"
@@ -255,7 +255,7 @@ export const ProviderAnalyticsDashboard: React.FC<ProviderAnalyticsDashboardProp
 
           {/* Trends Section */}
           <div className="bg-white rounded-lg p-6 shadow-sm">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">📈 7-Day Trend</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4"> 7-Day Trend</h3>
             <div className="grid grid-cols-7 gap-2">
               {Object.entries(analytics.trends.last7Days).map(([day, count]) => (
                 <div key={day} className="text-center">
@@ -280,7 +280,7 @@ export const ProviderAnalyticsDashboard: React.FC<ProviderAnalyticsDashboardProp
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <MetricCard
-              icon="✅"
+              icon=""
               label="Completed Requests"
               value={metrics.completedRequests}
               subtext={`${metrics.acceptanceRate.toFixed(0)}% acceptance rate`}
@@ -311,7 +311,7 @@ export const ProviderAnalyticsDashboard: React.FC<ProviderAnalyticsDashboardProp
               color="bg-purple-50"
             />
             <MetricCard
-              icon="📊"
+              icon=""
               label="Total Requests"
               value={metrics.totalRequests}
               subtext="All-time"

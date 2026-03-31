@@ -1,4 +1,4 @@
-// components/smart/PriorityBadge.tsx
+﻿// components/smart/PriorityBadge.tsx
 // Drop into: frontend/src/components/smart/PriorityBadge.tsx
 
 import { Box, Chip, Tooltip } from '@mui/material';
@@ -27,7 +27,7 @@ const CONFIG: Record<UrgencyLevel, {
     border: 'rgba(239,68,68,0.40)',
     text: '#fca5a5',
     dot: '#ef4444',
-    tooltip: 'High urgency — needs immediate attention',
+    tooltip: 'High urgency  needs immediate attention',
   },
   medium: {
     label: 'Moderate',
@@ -35,7 +35,7 @@ const CONFIG: Record<UrgencyLevel, {
     border: 'rgba(245,158,11,0.35)',
     text: '#fcd34d',
     dot: '#f59e0b',
-    tooltip: 'Moderate urgency — respond soon',
+    tooltip: 'Moderate urgency  respond soon',
   },
   low: {
     label: 'Standard',
@@ -43,7 +43,7 @@ const CONFIG: Record<UrgencyLevel, {
     border: 'rgba(34,197,94,0.30)',
     text: '#86efac',
     dot: '#22c55e',
-    tooltip: 'Standard priority — normal response time',
+    tooltip: 'Standard priority  normal response time',
   },
 };
 

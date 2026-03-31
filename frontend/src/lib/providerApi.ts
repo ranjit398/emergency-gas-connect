@@ -1,4 +1,4 @@
-// frontend/src/lib/providerApi.ts
+﻿// frontend/src/lib/providerApi.ts
 // Drop into: frontend/src/lib/providerApi.ts
 // Add these exports to your existing api.ts OR import from here
 

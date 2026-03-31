@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import {
   Container, Paper, TextField, Button, Typography,
   Box, Link, Alert, FormControl, InputLabel, Select, MenuItem,
@@ -44,11 +44,11 @@ export default function Signup() {
         password: formData.password,
         fullName: formData.fullName,
         role: formData.role,
-        // Don't send phone/address — backend has safe defaults
+        // Don't send phone/address  backend has safe defaults
       });
       navigate('/');
     } catch (err: any) {
-      // ✅ Axios wraps the real error inside err.response.data
+      //  Axios wraps the real error inside err.response.data
       const msg =
         err?.response?.data?.error?.message ||
         err?.response?.data?.message ||

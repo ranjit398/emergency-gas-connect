@@ -1,4 +1,4 @@
-import { Location } from '../types';
+﻿import { Location } from '../types';
 
 export async function getCurrentLocation(): Promise<Location> {
   return new Promise((resolve, reject) => {

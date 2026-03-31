@@ -1,4 +1,4 @@
-import { Fab, Tooltip } from '@mui/material';
+﻿import { Fab, Tooltip } from '@mui/material';
 import { AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -8,7 +8,7 @@ export default function FloatingActionButton() {
   const navigate = useNavigate();
   const { profile } = useAuth();
 
-  // ✅ Only show FAB for seekers who want to create requests
+  //  Only show FAB for seekers who want to create requests
   if (profile?.role !== 'seeker') {
     return null;
   }

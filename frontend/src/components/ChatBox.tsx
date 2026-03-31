@@ -1,5 +1,5 @@
-// frontend/src/components/ChatBox.tsx
-// NEW FILE — drop into frontend/src/components/
+﻿// frontend/src/components/ChatBox.tsx
+// NEW FILE  drop into frontend/src/components/
 // WhatsApp-style real-time chat UI
 // Replaces the Chat.tsx page OR can be embedded anywhere
 
@@ -115,7 +115,7 @@ export default function ChatBox({
             ...m,
             id: m.id ?? m._id?.toString(),
             _status: 'sent' as const,
-          })).reverse(); // newest-first → oldest-first
+          })).reverse(); // newest-first  oldest-first
         } catch {
           msgs = [];
         }
@@ -320,9 +320,9 @@ export default function ChatBox({
               {receiverName}
             </Typography>
             <Typography sx={{ fontSize: '11px', opacity: 0.8 }}>
-              {isReceiverOnline ? '● Online' : '○ Offline'}
-              {cylinderType && ` · ${cylinderType} Request`}
-              {requestStatus && ` · ${requestStatus}`}
+              {isReceiverOnline ? ' Online' : ' Offline'}
+              {cylinderType && `  ${cylinderType} Request`}
+              {requestStatus && `  ${requestStatus}`}
             </Typography>
           </Box>
         </Box>
@@ -341,7 +341,7 @@ export default function ChatBox({
         ) : messages.length === 0 ? (
           <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Box sx={{ textAlign: 'center' }}>
-              <Typography sx={{ fontSize: '32px', mb: 1 }}>💬</Typography>
+              <Typography sx={{ fontSize: '32px', mb: 1 }}></Typography>
               <Typography color="text.secondary" sx={{ fontSize: '14px' }}>
                 No messages yet. Say hello!
               </Typography>
@@ -389,7 +389,7 @@ export default function ChatBox({
                       )}
 
                       <Box sx={{ maxWidth: '72%' }}>
-                        {/* Sender name (for group chats — useful for future) */}
+                        {/* Sender name (for group chats  useful for future) */}
                         {!isOwn && (
                           <Typography sx={{ fontSize: '11px', color: 'text.secondary', mb: 0.3, ml: 0.5 }}>
                             {msg.sender?.fullName ?? 'User'}
@@ -427,7 +427,7 @@ export default function ChatBox({
                             {isOwn && (
                               <>
                                 {msg._status === 'sending' && <Clock size={11} style={{ opacity: 0.6 }} />}
-                                {msg._status === 'failed'  && <Typography sx={{ fontSize: '10px', color: '#fca5a5' }}>✕ Tap to retry</Typography>}
+                                {msg._status === 'failed'  && <Typography sx={{ fontSize: '10px', color: '#fca5a5' }}> Tap to retry</Typography>}
                                 {(msg._status === 'sent' || !msg._status) && (
                                   msg.isRead
                                     ? <CheckCheck size={13} style={{ opacity: 0.85 }} />

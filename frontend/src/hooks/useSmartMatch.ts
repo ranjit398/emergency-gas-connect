@@ -1,4 +1,4 @@
-// hooks/useSmartMatch.ts
+﻿// hooks/useSmartMatch.ts
 // Drop into: frontend/src/hooks/useSmartMatch.ts
 
 import { useMemo } from 'react';
@@ -74,22 +74,22 @@ function assignBadges(
     .sort((a, b) => (a.distanceKm ?? 999) - (b.distanceKm ?? 999));
   if (sortedByDist[0]?.id === helper.id) {
     badges.push('nearest');
-    labels.push('📍 Nearest');
+    labels.push(' Nearest');
   }
 
   // Top rated
   if (helper.ratings >= 4.5 && helper.totalRatings >= 10) {
     badges.push('top_rated');
-    labels.push('⭐ Top Rated');
+    labels.push(' Top Rated');
   }
 
   // Trusted (many completions)
   if (helper.completedRequests >= 50) {
     badges.push('trusted');
-    labels.push('🛡️ Trusted Helper');
+    labels.push(' Trusted Helper');
   } else if (helper.completedRequests >= 20) {
     badges.push('experienced');
-    labels.push('✅ Experienced');
+    labels.push(' Experienced');
   }
 
   // Fastest responder
@@ -98,7 +98,7 @@ function assignBadges(
     .sort((a, b) => (a.avgResponseMinutes ?? 999) - (b.avgResponseMinutes ?? 999));
   if (sortedByResp[0]?.id === helper.id) {
     badges.push('fastest');
-    labels.push('⚡ Fastest Response');
+    labels.push(' Fastest Response');
   }
 
   return { badges, labels };

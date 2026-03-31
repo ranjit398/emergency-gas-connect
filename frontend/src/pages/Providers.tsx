@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
 import {
   Container, Grid, Typography, Box, TextField,
   InputAdornment, FormControl, InputLabel, Select,
@@ -31,15 +31,15 @@ export default function Providers() {
         res = await providersApi.getNearby(
           userLocation.lat,
           userLocation.lng,
-          50, // 50km radius — wide enough to catch all providers
+          50, // 50km radius  wide enough to catch all providers
           businessTypeFilter !== 'all' ? businessTypeFilter : undefined
         );
       } else {
-        // No location → fetch top providers (all, not just verified)
+        // No location  fetch top providers (all, not just verified)
         res = await providersApi.getTop(50);
       }
 
-      // Normalize _id → id
+      // Normalize _id  id
       const raw: any[] = res.data.data ?? res.data ?? [];
       const normalized: Provider[] = raw.map((p: any) => ({
         ...p,
@@ -68,7 +68,7 @@ export default function Providers() {
     getCurrentLocation()
       .then((loc) => setUserLocation({ lat: loc.latitude, lng: loc.longitude }))
       .catch(() => {
-        // Location denied → still load providers without distance
+        // Location denied  still load providers without distance
         loadProviders();
       });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -77,7 +77,7 @@ export default function Providers() {
     loadProviders();
   }, [loadProviders]);
 
-  // ── Client-side filter ─────────────────────────────────────────────────────
+  //  Client-side filter 
   const filteredProviders = providers
     .filter((p) => {
       const matchesType =
@@ -107,7 +107,7 @@ export default function Providers() {
     }))
     .sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
 
-  // ── Search handler (hits /providers/search endpoint) ──────────────────────
+  //  Search handler (hits /providers/search endpoint) 
   const handleSearch = async (query: string) => {
     setSearchQuery(query);
     if (query.length < 2) return;
@@ -124,7 +124,7 @@ export default function Providers() {
         );
       }
     } catch {
-      // Silently fail — client-side filter will still narrow results
+      // Silently fail  client-side filter will still narrow results
     }
   };
 

@@ -1,4 +1,4 @@
-// components/smart/LiveActivityFeed.tsx
+﻿// components/smart/LiveActivityFeed.tsx
 // Drop into: frontend/src/components/smart/LiveActivityFeed.tsx
 
 import { useRef, useState } from 'react';
@@ -18,11 +18,11 @@ interface LiveActivityFeedProps {
 }
 
 const TYPE_CONFIG: Record<ActivityType, { icon: string; color: string; bg: string }> = {
-  request_created: { icon: '🚨', color: '#ef4444', bg: 'rgba(239,68,68,0.12)' },
-  request_accepted: { icon: '✅', color: '#22c55e', bg: 'rgba(34,197,94,0.10)' },
-  request_completed: { icon: '🎉', color: '#a78bfa', bg: 'rgba(167,139,250,0.12)' },
-  helper_available: { icon: '👤', color: '#60a5fa', bg: 'rgba(96,165,250,0.12)' },
-  provider_joined: { icon: '🏪', color: '#fbbf24', bg: 'rgba(251,191,36,0.12)' },
+  request_created: { icon: '', color: '#ef4444', bg: 'rgba(239,68,68,0.12)' },
+  request_accepted: { icon: '', color: '#22c55e', bg: 'rgba(34,197,94,0.10)' },
+  request_completed: { icon: '', color: '#a78bfa', bg: 'rgba(167,139,250,0.12)' },
+  helper_available: { icon: '', color: '#60a5fa', bg: 'rgba(96,165,250,0.12)' },
+  provider_joined: { icon: '', color: '#fbbf24', bg: 'rgba(251,191,36,0.12)' },
 };
 
 function EventRow({ event, index }: { event: ActivityEvent; index: number }) {
@@ -93,7 +93,7 @@ function EventRow({ event, index }: { event: ActivityEvent; index: number }) {
 
           {event.location && (
             <Typography sx={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', mt: 0.3 }}>
-              📍 {event.location}
+               {event.location}
             </Typography>
           )}
         </Box>
@@ -158,7 +158,7 @@ export default function LiveActivityFeed({
             Live Activity Near You
           </Typography>
           <Typography sx={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>
-            {isLive ? `${events.length} event${events.length !== 1 ? 's' : ''} — updating live` : 'Paused'}
+            {isLive ? `${events.length} event${events.length !== 1 ? 's' : ''}  updating live` : 'Paused'}
           </Typography>
         </Box>
 
@@ -221,7 +221,7 @@ export default function LiveActivityFeed({
           }}
         >
           <Typography sx={{ fontSize: '12px', color: 'rgba(255,255,255,0.35)', fontWeight: 600 }}>
-            {showAll ? '↑ Show less' : `↓ Show ${events.length - maxVisible} more events`}
+            {showAll ? ' Show less' : ` Show ${events.length - maxVisible} more events`}
           </Typography>
         </Box>
       )}

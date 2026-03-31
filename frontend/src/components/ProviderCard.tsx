@@ -1,4 +1,4 @@
-import { Card, CardContent, Typography, Chip, Box, Button, Avatar } from '@mui/material';
+﻿import { Card, CardContent, Typography, Chip, Box, Button, Avatar } from '@mui/material';
 import { MapPin, Phone, Building2, Star, Clock } from 'lucide-react';
 import { Provider } from '../types';
 import { formatDistance } from '../utils/distance';
@@ -41,7 +41,7 @@ export default function ProviderCard({ provider, distance }: ProviderCardProps) 
                 size="small"
               />
               {provider.isVerified && (
-                <Chip label="✓ Verified" color="success" size="small" variant="outlined" />
+                <Chip label=" Verified" color="success" size="small" variant="outlined" />
               )}
               {!provider.isVerified && (
                 <Chip label="Pending" color="warning" size="small" variant="outlined" />
@@ -73,7 +73,7 @@ export default function ProviderCard({ provider, distance }: ProviderCardProps) 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1 }}>
             <Clock size={14} color="#9C27B0" />
             <Typography variant="body2" color="text.secondary">
-              {provider.operatingHours.open} – {provider.operatingHours.close}
+              {provider.operatingHours.open}  {provider.operatingHours.close}
             </Typography>
           </Box>
         )}
@@ -81,7 +81,7 @@ export default function ProviderCard({ provider, distance }: ProviderCardProps) 
         {/* Distance */}
         {distance !== undefined && (
           <Typography variant="body2" color="primary" sx={{ fontWeight: 500, mb: 1 }}>
-            📍 {formatDistance(distance)} away
+             {formatDistance(distance)} away
           </Typography>
         )}
 

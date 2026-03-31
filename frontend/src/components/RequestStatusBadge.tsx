@@ -1,4 +1,4 @@
-// frontend/src/components/RequestStatusBadge.tsx
+﻿// frontend/src/components/RequestStatusBadge.tsx
 // Status indicator for emergency requests with production styling
 
 import React from 'react';
@@ -18,49 +18,49 @@ const statusConfig = {
     label: 'Requesting',
     color: 'bg-yellow-100 text-yellow-900',
     icon: Clock,
-    emoji: '🔄',
+    emoji: '',
     description: 'Waiting for a helper to accept',
   },
   accepted: {
     label: 'Accepted',
     color: 'bg-blue-100 text-blue-900',
     icon: CheckCircle,
-    emoji: '🟦',
+    emoji: '',
     description: 'Helper accepted - starting service',
   },
   in_progress: {
     label: 'In Progress',
     color: 'bg-purple-100 text-purple-900',
     icon: Zap,
-    emoji: '⚡',
+    emoji: '',
     description: 'Helper is on the way / serving you',
   },
   completed: {
-    label: '✓ Completed',
+    label: ' Completed',
     color: 'bg-green-100 text-green-900',
     icon: CheckCircle,
-    emoji: '✅',
+    emoji: '',
     description: 'Service completed successfully',
   },
   cancelled: {
     label: 'Cancelled',
     color: 'bg-red-100 text-red-900',
     icon: XCircle,
-    emoji: '❌',
+    emoji: '',
     description: 'Request was cancelled',
   },
   rejected: {
     label: 'Rejected',
     color: 'bg-red-100 text-red-900',
     icon: AlertCircle,
-    emoji: '⛔',
+    emoji: '',
     description: 'Request was rejected',
   },
   expired: {
     label: 'Expired',
     color: 'bg-gray-100 text-gray-900',
     icon: AlertCircle,
-    emoji: '⏱️',
+    emoji: '',
     description: 'No helpers available - request expired',
   },
 };
@@ -118,7 +118,7 @@ export const RequestTimeline: React.FC<RequestTimelineProps> = ({ status, timest
     {
       id: 'created',
       label: 'Created',
-      emoji: '📋',
+      emoji: '',
       completed: !!timestamps?.created,
     },
     {

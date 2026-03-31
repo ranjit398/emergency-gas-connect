@@ -1,4 +1,4 @@
-// frontend/src/types/index.ts
+﻿// frontend/src/types/index.ts
 // FIXED: All field names match what the backend actually returns (camelCase)
 
 export type UserRole = 'seeker' | 'helper' | 'provider' | 'admin';
@@ -6,14 +6,14 @@ export type RequestStatus = 'pending' | 'accepted' | 'completed' | 'cancelled' |
 export type CylinderType = 'LPG' | 'CNG';
 export type BusinessType = 'LPG' | 'CNG' | 'Both';
 
-// ── Auth ──────────────────────────────────────────────────────────────────────
+//  Auth 
 export interface AuthUser {
   id: string;
   email: string;
   role: UserRole;
 }
 
-// ── Profile ───────────────────────────────────────────────────────────────────
+//  Profile 
 export interface Profile {
   id: string;
   userId: string;
@@ -34,7 +34,7 @@ export interface Profile {
   updatedAt: string;
 }
 
-// ── Seeker/Helper embedded in request ─────────────────────────────────────────
+//  Seeker/Helper embedded in request 
 // This matches what the backend aggregation pipeline returns
 export interface RequestUser {
   id: string;
@@ -45,7 +45,7 @@ export interface RequestUser {
   role?: string;
 }
 
-// ── Emergency Request ─────────────────────────────────────────────────────────
+//  Emergency Request 
 export interface EmergencyRequest {
   id: string;
   _id?: string;
@@ -67,27 +67,27 @@ export interface EmergencyRequest {
   priorityLevel: 'critical' | 'high' | 'medium' | 'low';
   createdAt: string;
   updatedAt: string;
-  // ── Populated fields from backend aggregation ──────────────────────────────
+  //  Populated fields from backend aggregation 
   seeker?: RequestUser | null;
   helper?: RequestUser | null;
   // Distance added by geo query
   distanceKm?: number | null;
 }
 
-// ── Provider ──────────────────────────────────────────────────────────────────
+//  Provider 
 export interface Provider {
   id: string;
   _id?: string;
   userId: string;
-  businessName: string;           // camelCase — was business_name
-  businessType: BusinessType;     // camelCase — was business_type
+  businessName: string;           // camelCase  was business_name
+  businessType: BusinessType;     // camelCase  was business_type
   location: { type: 'Point'; coordinates: [number, number] };
   address: string;
-  contactNumber: string;          // camelCase — was contact_number
+  contactNumber: string;          // camelCase  was contact_number
   registrationNumber?: string;
   licenseNumber?: string;
   licenseExpiry?: string;
-  isVerified: boolean;            // camelCase — was is_verified
+  isVerified: boolean;            // camelCase  was is_verified
   verificationDocument?: string | null;
   operatingHours?: { open: string; close: string };
   availableCylinders?: { type: CylinderType; quantity: number }[];
@@ -98,7 +98,7 @@ export interface Provider {
   updatedAt?: string;
 }
 
-// ── Message ───────────────────────────────────────────────────────────────────
+//  Message 
 export interface Message {
   id: string;
   _id?: string;
@@ -114,7 +114,7 @@ export interface Message {
   receiver?: RequestUser;
 }
 
-// ── Notification ──────────────────────────────────────────────────────────────
+//  Notification 
 export interface Notification {
   id: string;
   userId: string;
@@ -126,7 +126,7 @@ export interface Notification {
   createdAt: string;
 }
 
-// ── API response wrappers ─────────────────────────────────────────────────────
+//  API response wrappers 
 export interface ApiResponse<T> {
   success: boolean;
   data?: T;

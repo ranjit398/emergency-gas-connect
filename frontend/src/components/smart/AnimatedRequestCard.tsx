@@ -1,4 +1,4 @@
-// components/smart/AnimatedRequestCard.tsx
+﻿// components/smart/AnimatedRequestCard.tsx
 // Drop into: frontend/src/components/smart/AnimatedRequestCard.tsx
 // Replaces or wraps your existing RequestCard for the smart features sections
 
@@ -221,7 +221,7 @@ export default forwardRef<HTMLDivElement, AnimatedRequestCardProps>(function Ani
           }}>
             <Flame size={11} color={CYLINDER_COLOR[request.cylinderType]} />
             <Typography sx={{ fontSize: '11px', fontWeight: 700, color: CYLINDER_COLOR[request.cylinderType] }}>
-              {request.cylinderType} × {request.quantity}
+              {request.cylinderType}  {request.quantity}
             </Typography>
           </Box>
         </Box>
@@ -299,7 +299,7 @@ export default forwardRef<HTMLDivElement, AnimatedRequestCardProps>(function Ani
                   transition: 'all 0.2s',
                 }}
               >
-                {accepting ? 'Accepting...' : isHigh ? '🚨 Accept Now' : 'Accept'}
+                {accepting ? 'Accepting...' : isHigh ? ' Accept Now' : 'Accept'}
               </Button>
             )}
 

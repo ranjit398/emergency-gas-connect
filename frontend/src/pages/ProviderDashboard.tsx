@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+﻿import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Box, Container, Typography, Paper, Button, Tab, Tabs,
   Chip, LinearProgress, Avatar, IconButton, Tooltip, CircularProgress,
@@ -16,14 +16,14 @@ import { providerDashboardApi } from '../lib/providerApi';
 import { getSocket } from '../lib/socket';
 import { useAuth } from '../context/AuthContext';
 
-// ── API helper ────────────────────────────────────────────────────────────────
+//  API helper 
 import api from '../lib/api';
 
 const statsApi = {
   getStats: () => api.get('/provider-dashboard/stats'),
 };
 
-// ── Types ─────────────────────────────────────────────────────────────────────
+//  Types 
 interface ProviderStats {
   totalRequests: number;
   activeRequests: number;
@@ -47,7 +47,7 @@ interface ProviderStats {
   fetchedAt: string;
 }
 
-// ── Stat Card ─────────────────────────────────────────────────────────────────
+//  Stat Card 
 function StatCard({ icon, label, value, sub, color, delta, pulse }: {
   icon: React.ReactNode; label: string; value: string | number;
   sub?: string; color: string; delta?: number; pulse?: boolean;
@@ -92,7 +92,7 @@ function StatCard({ icon, label, value, sub, color, delta, pulse }: {
   );
 }
 
-// ── Mini bar chart ─────────────────────────────────────────────────────────────
+//  Mini bar chart 
 function MiniChart({ data }: { data: { label: string; fulfilled: number }[] }) {
   const max = Math.max(...data.map((d) => d.fulfilled), 1);
   return (
@@ -117,7 +117,7 @@ function MiniChart({ data }: { data: { label: string; fulfilled: number }[] }) {
   );
 }
 
-// ── Main Page ─────────────────────────────────────────────────────────────────
+//  Main Page 
 export default function ProviderDashboard() {
   const { user } = useAuth();
   const [stats, setStats] = useState<ProviderStats | null>(null);
@@ -129,7 +129,7 @@ export default function ProviderDashboard() {
   const [error, setError] = useState<string | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval>>();
 
-  // ── Load stats ─────────────────────────────────────────────────────────────
+  //  Load stats 
   const loadStats = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
     else setRefreshing(true);
@@ -157,7 +157,7 @@ export default function ProviderDashboard() {
     return () => clearInterval(timerRef.current);
   }, [loadStats]);
 
-  // ── Socket: instant updates ────────────────────────────────────────────────
+  //  Socket: instant updates 
   useEffect(() => {
     const socket = getSocket();
 
@@ -169,15 +169,15 @@ export default function ProviderDashboard() {
     };
 
     socket.on('request:new', (data: any) => {
-      addAlert(`🚨 New ${data.cylinderType ?? ''} emergency request nearby`, 'new');
+      addAlert(` New ${data.cylinderType ?? ''} emergency request nearby`, 'new');
       toast.info(`New emergency: ${data.address ?? 'nearby'}`, { autoClose: 4000 });
     });
 
     socket.on('request:status-changed', (data: any) => {
       if (data.status === 'completed') {
-        addAlert('✅ Request completed', 'completed');
+        addAlert(' Request completed', 'completed');
       } else if (data.status === 'accepted') {
-        addAlert(`⚡ Request accepted by helper`, 'accepted');
+        addAlert(` Request accepted by helper`, 'accepted');
       }
       loadStats(true);
     });
@@ -241,13 +241,13 @@ export default function ProviderDashboard() {
                 {stats?.businessName ?? 'Provider Dashboard'}
               </Typography>
               {stats?.isVerified
-                ? <Chip label="✓ Verified" size="small" sx={{ fontSize: '10px', bgcolor: 'rgba(34,197,94,.12)', color: '#4ade80', border: '1px solid rgba(34,197,94,.3)' }} />
-                : <Chip label="● Pending" size="small" sx={{ fontSize: '10px', bgcolor: 'rgba(245,158,11,.12)', color: '#fcd34d', border: '1px solid rgba(245,158,11,.3)' }} />
+                ? <Chip label=" Verified" size="small" sx={{ fontSize: '10px', bgcolor: 'rgba(34,197,94,.12)', color: '#4ade80', border: '1px solid rgba(34,197,94,.3)' }} />
+                : <Chip label=" Pending" size="small" sx={{ fontSize: '10px', bgcolor: 'rgba(245,158,11,.12)', color: '#fcd34d', border: '1px solid rgba(245,158,11,.3)' }} />
               }
             </Box>
             {lastUpdated && (
               <Typography sx={{ fontSize: '11px', color: 'rgba(255,255,255,.3)' }}>
-                Live · Updated {formatDistanceToNow(lastUpdated, { addSuffix: true })}
+                Live  Updated {formatDistanceToNow(lastUpdated, { addSuffix: true })}
               </Typography>
             )}
           </Box>
@@ -287,12 +287,12 @@ export default function ProviderDashboard() {
           <Box>
             <StatCard icon={<Package size={18} />} label="Total Stock"
               value={stats?.totalStock ?? 0}
-              sub={stats?.inventory?.map((c) => `${c.type}: ${c.quantity}`).join(' · ') ?? ''}
+              sub={stats?.inventory?.map((c) => `${c.type}: ${c.quantity}`).join('  ') ?? ''}
               color={stats?.totalStock === 0 ? '#6b7280' : (stats?.totalStock ?? 0) < 5 ? '#f59e0b' : '#22c55e'} />
           </Box>
           <Box>
             <StatCard icon={<Star size={18} />} label="Avg Rating"
-              value={stats?.averageRating.toFixed(1) ?? '—'} sub={`${stats?.totalRatings ?? 0} reviews`} color="#f59e0b" />
+              value={stats?.averageRating.toFixed(1) ?? ''} sub={`${stats?.totalRatings ?? 0} reviews`} color="#f59e0b" />
           </Box>
         </Box>
 
@@ -306,10 +306,10 @@ export default function ProviderDashboard() {
                 '& .MuiTabs-indicator': { background: 'linear-gradient(90deg,#f97316,#ef4444)', borderRadius: 1 },
                 '& .MuiTab-root': { color: 'rgba(255,255,255,.4)', fontWeight: 600, fontSize: '12px', textTransform: 'none', '&.Mui-selected': { color: '#fff' } },
               }}>
-                <Tab label="📊 Overview" />
-                <Tab label="📈 7-Day Chart" />
-                <Tab label="📡 Live Feed" />
-                <Tab label="⭐ Ratings" />
+                <Tab label=" Overview" />
+                <Tab label=" 7-Day Chart" />
+                <Tab label=" Live Feed" />
+                <Tab label=" Ratings" />
               </Tabs>
               <Divider sx={{ borderColor: 'rgba(255,255,255,.05)' }} />
 
@@ -371,7 +371,7 @@ export default function ProviderDashboard() {
                             </Typography>
                             {d.revenue > 0 && (
                               <Typography sx={{ fontSize: '12px', color: 'rgba(255,255,255,.3)' }}>
-                                ₹{d.revenue.toLocaleString('en-IN')}
+                                {d.revenue.toLocaleString('en-IN')}
                               </Typography>
                             )}
                           </Box>
@@ -414,10 +414,10 @@ export default function ProviderDashboard() {
                           <Box sx={{ width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
                             bgcolor: a.status === 'completed' ? '#22c55e' : a.status === 'accepted' ? '#3b82f6' : '#6b7280' }} />
                           <Typography sx={{ fontSize: '12px', color: 'rgba(255,255,255,.5)', flex: 1 }}>
-                            {a.cylinderType} request — {a.status}
+                            {a.cylinderType} request  {a.status}
                           </Typography>
                           <Typography sx={{ fontSize: '10px', color: 'rgba(255,255,255,.25)' }}>
-                            {a.completedAt ? formatDistanceToNow(new Date(a.completedAt), { addSuffix: true }) : '—'}
+                            {a.completedAt ? formatDistanceToNow(new Date(a.completedAt), { addSuffix: true }) : ''}
                           </Typography>
                         </Box>
                       ))}
@@ -442,7 +442,7 @@ export default function ProviderDashboard() {
                             const total = Object.values(stats?.ratingDistribution ?? {}).reduce((a: number, b: any) => a + b, 0) as number;
                             return (
                               <Box key={star} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 0.8 }}>
-                                <Typography sx={{ fontSize: '11px', color: '#f59e0b', minWidth: 20 }}>{'★'.repeat(star)}</Typography>
+                                <Typography sx={{ fontSize: '11px', color: '#f59e0b', minWidth: 20 }}>{''.repeat(star)}</Typography>
                                 <LinearProgress variant="determinate" value={total > 0 ? (count / total) * 100 : 0}
                                   sx={{ flex: 1, height: 7, borderRadius: 3.5, background: 'rgba(255,255,255,.06)', '& .MuiLinearProgress-bar': { borderRadius: 3.5, background: '#f59e0b' } }} />
                                 <Typography sx={{ fontSize: '11px', color: 'rgba(255,255,255,.35)', minWidth: 20, textAlign: 'right' }}>{count}</Typography>
@@ -461,7 +461,7 @@ export default function ProviderDashboard() {
           {/* Right: inventory + recent */}
           <Box>
             <Paper sx={{ background: 'rgba(17,17,19,.97)', border: '1px solid rgba(255,255,255,.07)', borderRadius: 3, p: 2.5, mb: 2 }}>
-              <Typography sx={{ fontSize: '13px', fontWeight: 700, color: '#fff', mb: 2 }}>📦 Inventory</Typography>
+              <Typography sx={{ fontSize: '13px', fontWeight: 700, color: '#fff', mb: 2 }}> Inventory</Typography>
               {(stats?.inventory ?? []).length === 0 ? (
                 <Typography sx={{ fontSize: '12px', color: 'rgba(255,255,255,.3)' }}>No inventory data</Typography>
               ) : (
@@ -482,11 +482,11 @@ export default function ProviderDashboard() {
             </Paper>
 
             <Paper sx={{ background: 'rgba(17,17,19,.97)', border: '1px solid rgba(255,255,255,.07)', borderRadius: 3, p: 2.5 }}>
-              <Typography sx={{ fontSize: '13px', fontWeight: 700, color: '#fff', mb: 2 }}>🕒 Recent Activity</Typography>
+              <Typography sx={{ fontSize: '13px', fontWeight: 700, color: '#fff', mb: 2 }}> Recent Activity</Typography>
               {(stats?.recentActivity ?? []).slice(0, 5).map((a: any) => (
                 <Box key={a.id} sx={{ py: 1.2, borderBottom: '1px solid rgba(255,255,255,.05)' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.3 }}>
-                    <Typography sx={{ fontSize: '12px', fontWeight: 600, color: '#fff' }}>{a.cylinderType} · {a.status}</Typography>
+                    <Typography sx={{ fontSize: '12px', fontWeight: 600, color: '#fff' }}>{a.cylinderType}  {a.status}</Typography>
                     <Chip label={a.priorityLevel ?? 'low'} size="small" sx={{ fontSize: '9px', height: 18,
                       bgcolor: a.priorityLevel === 'critical' ? 'rgba(239,68,68,.15)' : 'rgba(255,255,255,.06)',
                       color: a.priorityLevel === 'critical' ? '#fca5a5' : 'rgba(255,255,255,.4)' }} />

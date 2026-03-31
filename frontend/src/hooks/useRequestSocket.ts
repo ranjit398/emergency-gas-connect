@@ -1,4 +1,4 @@
-// frontend/src/hooks/useRequestSocket.ts
+﻿// frontend/src/hooks/useRequestSocket.ts
 // Production-grade Socket.IO hook for real-time request updates
 
 import { useEffect, useCallback } from 'react';

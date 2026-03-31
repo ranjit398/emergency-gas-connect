@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Container, Paper, TextField, Button, Typography, Box, FormControl, InputLabel, Select, MenuItem, Alert, IconButton } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -17,7 +17,7 @@ export default function RequestHelp() {
   const [formData, setFormData] = useState({ cylinderType: 'LPG', message: '', latitude: 0, longitude: 0, address: '', quantity: 1 });
   const [error, setError] = useState('');
 
-  // ✅ ROLE CHECK: Only seekers can create requests
+  //  ROLE CHECK: Only seekers can create requests
   useEffect(() => {
     if (profile && profile.role !== 'seeker') {
       navigate('/');

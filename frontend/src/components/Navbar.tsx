@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -104,7 +104,7 @@ export default function Navbar() {
               </MenuItem>
               <MenuItem onClick={() => handleNavigate('/')}>Home</MenuItem>
               <MenuItem onClick={() => handleNavigate('/smart')}>
-                ⚡ Smart Hub
+                 Smart Hub
               </MenuItem>
               <MenuItem onClick={() => handleNavigate('/dashboard')}>
                 Dashboard
@@ -114,7 +114,7 @@ export default function Navbar() {
               </MenuItem>
               {user?.role === 'provider' && (
                 <MenuItem onClick={() => handleNavigate('/provider-dashboard')}>
-                  📊 Provider Dashboard
+                   Provider Dashboard
                 </MenuItem>
               )}
               <MenuItem onClick={handleSignOut}>Sign Out</MenuItem>

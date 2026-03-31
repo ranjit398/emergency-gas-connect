@@ -1,4 +1,4 @@
-// frontend/src/components/RequestAgainButton.tsx
+﻿// frontend/src/components/RequestAgainButton.tsx
 // Allow seeker to request a new helper if current one doesn't respond
 
 import React, { useState } from 'react';
@@ -55,7 +55,7 @@ export const RequestAgainButton: React.FC<RequestAgainButtonProps> = ({
 
       if (response.data.success) {
         NotificationManager.success(
-          `✨ Looking for a new helper... (Attempt ${reassignmentCount + 1}/${maxReassignments})`
+          ` Looking for a new helper... (Attempt ${reassignmentCount + 1}/${maxReassignments})`
         );
         onReassignSuccess?.();
       } else {
@@ -106,7 +106,7 @@ export const RequestAgainButton: React.FC<RequestAgainButtonProps> = ({
       )}
 
       <p className="text-xs text-gray-600">
-        💡 Tip: Use this if the helper isn't responsive. You have {maxReassignments - reassignmentCount} more attempts.
+         Tip: Use this if the helper isn't responsive. You have {maxReassignments - reassignmentCount} more attempts.
       </p>
     </div>
   );
