@@ -91,14 +91,6 @@ const io = new SocketIOServer(httpServer, {
 console.log('[Socket.IO] Initialized with transports:', io.engine.opts.transports);
 console.log('[Socket.IO] CORS origins:', getCorsOrigins());
 
-// ✅ Add middleware to log all Socket.IO requests
-app.use((req: Request, res: Response, next: NextFunction) => {
-  if (req.path.startsWith('/socket.io/')) {
-    console.log(`[Socket.IO Request] ${req.method} ${req.url} from ${req.ip}`);
-  }
-  next();
-});
-
 // ── Inject io into service layer (before any routes handle requests) ───────
 setSocketIO(io);
 setLifecycleIO(io);
@@ -107,15 +99,16 @@ setReassignmentIO(io);
 // ── Security middleware ────────────────────────────────────────────────────
 app.use(helmet({ crossOriginEmbedderPolicy: false }));
 
-// ── CORS headers BEFORE Socket.IO for polling transport ──────────────────
+// ── CORS headers and middleware (Socket.IO will add its own) ────────────────
 const corsOriginsList = config.corsOrigin;
 app.use((req: Request, res: Response, next: NextFunction) => {
-  const origin = req.headers.origin;
-  
-  // Log for debugging
-  if (req.path.includes('socket.io')) {
-    console.log(`[CORS Debug] socket.io request - Origin: ${origin}, Path: ${req.path}`);
+  // Skip socket.io - let Socket.IO's built-in CORS handle it
+  if (req.path.startsWith('/socket.io/')) {
+    console.log(`[Socket.IO Route] ${req.method} ${req.path}`);
+    return next(); // Let Socket.IO's middleware handle it
   }
+  
+  const origin = req.headers.origin;
   
   if (origin) {
     const allowed = corsOriginsList.some(allowed => {
@@ -196,11 +189,22 @@ v1.use('/live', liveRoutes);
 
 app.use('/api/v1', v1);
 
+// ── Socket.IO Info endpoint (debugging) ────────────────────────────────────
+app.get('/socket.io/info', (req: Request, res: Response) => {
+  console.log('[Socket.IO] Info endpoint hit');
+  res.json({
+    ok: true,
+    engines: io.engine.opts.transports,
+    origins: getCorsOrigins(),
+  });
+});
+
 // ── 404 (but NOT for socket.io - Socket.IO handles that) ────────────────────
 app.use((req: Request, res: Response) => {
   // Let Socket.IO handle its own paths
   if (req.path.startsWith('/socket.io/')) {
-    return; // Let Socket.IO handler process it
+    console.log('[WARN] Express caught socket.io request - should be handled by Socket.IO:', req.path);
+    return res.status(405).json({ error: 'Method not allowed' });
   }
   
   res.status(404).json({
