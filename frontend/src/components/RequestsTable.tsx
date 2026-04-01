@@ -112,7 +112,7 @@ export default function RequestsTable({
 
   if (isLoading) {
     return (
-      <Paper sx={{ p: 4, textAlign: 'center' }}>
+      <Paper sx={{ p: 4, textAlign: 'center', background: '#ffffff', border: '1px solid #e8eef5' }}>
         <CircularProgress />
         <Typography sx={{ mt: 2, color: 'text.secondary' }}>Loading requests...</Typography>
       </Paper>

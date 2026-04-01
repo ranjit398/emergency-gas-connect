@@ -12,7 +12,7 @@ import {
   Typography,
   CircularProgress,
   Alert,
-  Button,
+  Paper,
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
@@ -273,14 +273,6 @@ export default function ProviderDashboard() {
                   Welcome back, {stats?.businessName || 'Provider'}
                 </Typography>
               </Box>
-              <Button
-                onClick={loadStats}
-                disabled={statsLoading}
-                variant="contained"
-                sx={{ textTransform: 'none' }}
-              >
-                {statsLoading ? <CircularProgress size={20} /> : 'Refresh'}
-              </Button>
             </Box>
           </motion.div>
         </Box>
@@ -297,73 +289,81 @@ export default function ProviderDashboard() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.1 }}
           >
-            <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-              <Tabs
-                value={activeTab}
-                onChange={(_, value) => setActiveTab(value)}
-                sx={{
-                  '& .MuiTab-root': {
-                    textTransform: 'none',
-                    fontSize: '14px',
-                    fontWeight: 600,
-                  },
-                }}
-              >
-                <Tab label="📊 Inventory" />
-                <Tab label="📋 Requests" />
-                <Tab label="👥 Helpers" />
-              </Tabs>
-            </Box>
-
-            {/* Tab Content */}
-            {activeTab === 0 && (
-              <Box sx={{ mb: 4 }}>
-                <InventoryCard
-                  inventory={inventory}
-                  isLoading={inventoryLoading}
-                  onUpdate={handleUpdateInventory}
-                  businessType={stats?.businessType || 'Both'}
-                />
-              </Box>
-            )}
-
-            {activeTab === 1 && (
-              <Box sx={{ mb: 4 }}>
-                <RequestsTable
-                  requests={requestsData}
-                  total={requestsTotal}
-                  isLoading={requestsLoading}
-                  page={requestsPage}
-                  limit={requestsLimit}
-                  onPageChange={(newPage) => setRequestsPage(newPage)}
-                  onLimitChange={(newLimit) => {
-                    setRequestsLimit(newLimit);
-                    setRequestsPage(0);
+            <Paper sx={{ background: '#ffffff', border: '1px solid #e8eef5', borderRadius: 2, overflow: 'hidden' }}>
+              <Box sx={{ borderBottom: 1, borderColor: '#e8eef5', px: 0 }}>
+                <Tabs
+                  value={activeTab}
+                  onChange={(_, value) => setActiveTab(value)}
+                  sx={{
+                    '& .MuiTab-root': {
+                      textTransform: 'none',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      color: '#666666',
+                    },
+                    '& .Mui-selected': {
+                      color: '#2196f3 !important',
+                    },
                   }}
-                  onStatusFilter={(status) => {
-                    setRequestsStatus(status);
-                    setRequestsPage(0);
-                  }}
-                />
+                >
+                  <Tab label="📊 Inventory" />
+                  <Tab label="📋 Requests" />
+                  <Tab label="👥 Helpers" />
+                </Tabs>
               </Box>
-            )}
 
-            {activeTab === 2 && (
-              <Box sx={{ mb: 4 }}>
-                <HelpersTable
-                  helpers={helpersData}
-                  total={helpersTotal}
-                  isLoading={helpersLoading}
-                  page={helpersPage}
-                  limit={helpersLimit}
-                  onPageChange={(newPage) => setHelpersPage(newPage)}
-                  onLimitChange={(newLimit) => {
-                    setHelpersLimit(newLimit);
-                    setHelpersPage(0);
-                  }}
-                />
+              {/* Tab Content */}
+              <Box sx={{ p: 3 }}>
+                {activeTab === 0 && (
+                  <Box sx={{ mb: 0 }}>
+                    <InventoryCard
+                      inventory={inventory}
+                      isLoading={inventoryLoading}
+                      onUpdate={handleUpdateInventory}
+                      businessType={stats?.businessType || 'Both'}
+                    />
+                  </Box>
+                )}
+
+                {activeTab === 1 && (
+                  <Box sx={{ mb: 0 }}>
+                    <RequestsTable
+                      requests={requestsData}
+                      total={requestsTotal}
+                      isLoading={requestsLoading}
+                      page={requestsPage}
+                      limit={requestsLimit}
+                      onPageChange={(newPage) => setRequestsPage(newPage)}
+                      onLimitChange={(newLimit) => {
+                        setRequestsLimit(newLimit);
+                        setRequestsPage(0);
+                      }}
+                      onStatusFilter={(status) => {
+                        setRequestsStatus(status);
+                        setRequestsPage(0);
+                      }}
+                    />
+                  </Box>
+                )}
+
+                {activeTab === 2 && (
+                  <Box sx={{ mb: 0 }}>
+                    <HelpersTable
+                      helpers={helpersData}
+                      total={helpersTotal}
+                      isLoading={helpersLoading}
+                      page={helpersPage}
+                      limit={helpersLimit}
+                      onPageChange={(newPage) => setHelpersPage(newPage)}
+                      onLimitChange={(newLimit) => {
+                        setHelpersLimit(newLimit);
+                        setHelpersPage(0);
+                      }}
+                    />
+                  </Box>
+                )}
               </Box>
-            )}
+            </Paper>
           </motion.div>
         </Box>
       </Container>

@@ -16,7 +16,7 @@ import RequestHelp from './pages/RequestHelp';
 import Chat from './pages/Chat';
 import Providers from './pages/Providers';
 import SmartDashboard from './pages/SmartDashboard';
-import ProviderDashboard from './pages/ProviderDashboard';
+import ProviderDashboardEnhanced from './pages/ProviderDashboardEnhanced';
 import Loader from './components/Loader';
 
 const queryClient = new QueryClient({
@@ -60,8 +60,8 @@ function AppContent() {
             { path: '/chat/:requestId', element: <Chat /> },
             { path: '/providers', element: <Providers /> },
             { path: '/smart', element: <SmartDashboard /> },
-            { path: '/provider-dashboard', element: <ProviderDashboard /> },
-            { path: '/provider', element: <ProviderDashboard /> },
+            { path: '/provider-dashboard', element: <ProviderDashboardEnhanced /> },
+            { path: '/provider', element: <ProviderDashboardEnhanced /> },
           ].map(({ path, element }) => (
             <Route key={path} path={path} element={
               <ProtectedRoute>

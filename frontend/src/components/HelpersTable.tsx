@@ -64,7 +64,7 @@ export default function HelpersTable({
 
   if (isLoading) {
     return (
-      <Paper sx={{ p: 4, textAlign: 'center' }}>
+      <Paper sx={{ p: 4, textAlign: 'center', background: '#ffffff', border: '1px solid #e8eef5' }}>
         <CircularProgress />
         <Typography sx={{ mt: 2, color: 'text.secondary' }}>Loading helpers...</Typography>
       </Paper>
