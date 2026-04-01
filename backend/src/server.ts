@@ -69,6 +69,8 @@ const getCorsOrigins = (): string[] => {
 };
 
 const io = new SocketIOServer(httpServer, {
+  path: '/socket.io/', // ✅ Explicit path
+  serveClient: false, // Don't serve Socket.IO client (we use npm package)
   cors: {
     // Use static list for reliability on Render proxy
     origin: getCorsOrigins(),
@@ -83,6 +85,18 @@ const io = new SocketIOServer(httpServer, {
   pingInterval: 25000,
   // Allow larger payloads for analytics/bulk data
   maxHttpBufferSize: 10 * 1024 * 1024, // 10MB
+});
+
+// ✅ Log Socket.IO initialization
+console.log('[Socket.IO] Initialized with transports:', io.engine.opts.transports);
+console.log('[Socket.IO] CORS origins:', getCorsOrigins());
+
+// ✅ Add middleware to log all Socket.IO requests
+app.use((req: Request, res: Response, next: NextFunction) => {
+  if (req.path.startsWith('/socket.io/')) {
+    console.log(`[Socket.IO Request] ${req.method} ${req.url} from ${req.ip}`);
+  }
+  next();
 });
 
 // ── Inject io into service layer (before any routes handle requests) ───────
@@ -182,8 +196,13 @@ v1.use('/live', liveRoutes);
 
 app.use('/api/v1', v1);
 
-// ── 404 ────────────────────────────────────────────────────────────────────
+// ── 404 (but NOT for socket.io - Socket.IO handles that) ────────────────────
 app.use((req: Request, res: Response) => {
+  // Let Socket.IO handle its own paths
+  if (req.path.startsWith('/socket.io/')) {
+    return; // Let Socket.IO handler process it
+  }
+  
   res.status(404).json({
     success: false,
     error: { status: 404, message: 'Route not found', path: req.path },
