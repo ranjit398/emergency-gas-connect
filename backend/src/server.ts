@@ -71,13 +71,14 @@ const getCorsOrigins = (): string[] => {
 const io = new SocketIOServer(httpServer, {
   path: '/socket.io/',
   serveClient: false,
-  // ✅ TEMPORARY: Force WebSocket-only on production to bypass polling issues
-  // If WebSocket fails, the issue is network/infrastructure level, not CORS
-  transports: config.nodeEnv === 'production' ? ['websocket'] : ['polling', 'websocket'],
+  // ✅ ENABLE BOTH TRANSPORTS: Frontend tries polling first, then upgrades to WebSocket
+  // This matches frontend config and works with Render's proxy architecture
+  transports: ['polling', 'websocket'],
   cors: {
-    origin: true, // Accept all origins
+    origin: getCorsOrigins(), // Use function to get current origins
     methods: ['GET', 'POST', 'OPTIONS'],
     credentials: true,
+    maxAge: 86400, // 24 hours
   },
   pingTimeout: 120000,
   pingInterval: 25000,
@@ -117,41 +118,35 @@ app.use(helmet({
 }));
 
 // ── CORS headers and middleware (Socket.IO will add its own) ────────────────
-const corsOriginsList = config.corsOrigin;
+const corsOriginsList = getCorsOrigins();
 app.use((req: Request, res: Response, next: NextFunction) => {
   const origin = req.headers.origin;
   
-  // ✅ Allow all socket.io requests through to Socket.IO engine
-  if (req.path.startsWith('/socket.io/')) {
-    return next(); // Let Socket.IO's native CORS handler process it
-  }
-  
-  // ✅ Set CORS headers for all cross-origin requests
+  // ✅ Set CORS headers for ALL requests including socket.io
   if (origin) {
     const allowed = corsOriginsList.some(allowed => {
       const pattern = allowed.replace(/\*/g, '.*');
       return new RegExp(pattern).test(origin);
     });
     
-    if (allowed || config.nodeEnv !== 'production') {
-      // ✅ Always set headers (will be overridden by express-cors if needed)
+    if (allowed) {
       res.setHeader('Access-Control-Allow-Origin', origin);
       res.setHeader('Access-Control-Allow-Credentials', 'true');
       res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD');
       res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-      res.setHeader('Access-Control-Max-Age', '86400'); // 24 hours
+      res.setHeader('Access-Control-Max-Age', '86400');
       res.setHeader('Vary', 'Origin');
     }
   }
   
   // ✅ Handle preflight OPTIONS requests
   if (req.method === 'OPTIONS') {
-    return res.sendStatus(204); // 204 No Content for preflight
+    return res.sendStatus(204); // 204 No Content
   }
   
   next();
 });
-
+  
 // ── Express CORS middleware (for REST endpoints) ───────────────────────────
 app.use(cors({
   origin: config.corsOrigin,
