@@ -43,15 +43,45 @@ const app: Express = express();
 const httpServer = createServer(app);
 
 // ── Socket.IO ─────────────────────────────────────────────────────────────
+const getCorsOrigins = () => {
+  const origins = config.corsOrigin;
+  // Also add production frontend URL if not already there
+  const productionFrontend = 'https://emergency-gas-frontend.onrender.com';
+  if (!origins.includes(productionFrontend) && !origins.some(o => o.includes('onrender.com'))) {
+    origins.push(productionFrontend);
+  }
+  return origins;
+};
+
 const io = new SocketIOServer(httpServer, {
   cors: {
-    origin: config.corsOrigin,
-    methods: ['GET', 'POST'],
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+      const allowedOrigins = getCorsOrigins();
+      
+      // Allow requests with no origin (Postman, mobile apps, etc)
+      if (!origin) return callback(null, true);
+      
+      // Check if origin is in allowed list
+      if (allowedOrigins.some(allowed => {
+        const pattern = allowed.replace(/\*/g, '.*');
+        return new RegExp(pattern).test(origin);
+      })) {
+        callback(null, true);
+      } else {
+        console.warn(`[CORS] Rejected origin: ${origin}`);
+        callback(new Error('CORS origin not allowed'));
+      }
+    },
+    methods: ['GET', 'POST', 'OPTIONS'],
     credentials: true,
   },
+  // Polling MUST come first for Render.com compatibility
+  // Websocket upgrades automatically when available
   transports: ['polling', 'websocket'],
   pingTimeout: 60000,
   pingInterval: 25000,
+  // Allow larger payloads for analytics/bulk data
+  maxHttpBufferSize: 10 * 1024 * 1024, // 10MB
 });
 
 // ── Inject io into service layer (before any routes handle requests) ───────
