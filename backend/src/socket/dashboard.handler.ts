@@ -110,3 +110,59 @@ export const notifyProviderOfNearbyRequest = (
     logger.error('[Dashboard] Failed to notify provider:', error);
   }
 };
+
+/**
+ * Emit inventory update notification
+ */
+export const emitInventoryUpdate = (
+  io: Server,
+  providerId: string,
+  inventory: { lpgStock: number; cngStock: number }
+) => {
+  try {
+    io.to(`provider:${providerId}`).emit('inventory_updated', {
+      providerId,
+      ...inventory,
+      totalStock: inventory.lpgStock + inventory.cngStock,
+      timestamp: new Date().toISOString(),
+    });
+
+    logger.info(`[Dashboard] Emitted inventory update for provider ${providerId}`);
+  } catch (error) {
+    logger.error('[Dashboard] Failed to emit inventory update:', error);
+  }
+};
+
+/**
+ * Notify provider to refresh stats
+ */
+export const emitStatsRefresh = (io: Server, providerId: string) => {
+  try {
+    io.to(`provider:${providerId}`).emit('stats_refresh', {
+      timestamp: new Date().toISOString(),
+    });
+
+    logger.info(`[Dashboard] Emitted stats refresh for provider ${providerId}`);
+  } catch (error) {
+    logger.error('[Dashboard] Failed to emit stats refresh:', error);
+  }
+};
+
+/**
+ * Register dashboard event listeners
+ */
+export const registerDashboardHandlers = (io: Server, socket: any): void => {
+  if (socket.userRole === 'provider' && socket.userId) {
+    socket.join(`provider:${socket.userId}`);
+    logger.info(`[Dashboard] Provider ${socket.userId} joined dashboard room`);
+
+    // Listen for dashboard refresh requests
+    socket.on('dashboard:refresh', () => {
+      socket.emit('dashboard:refresh', { acknowledged: true });
+    });
+
+    socket.on('disconnect', () => {
+      logger.info(`[Dashboard] Provider ${socket.userId} disconnected`);
+    });
+  }
+};

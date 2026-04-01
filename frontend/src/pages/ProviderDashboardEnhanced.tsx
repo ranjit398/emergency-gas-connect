@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Enhanced Provider Dashboard
  * Complete integration of new features: stats, requests, helpers, inventory, real-time updates
  */
@@ -23,7 +23,6 @@ import ProviderStats from '../components/ProviderStats';
 import InventoryCard from '../components/InventoryCard';
 import RequestsTable from '../components/RequestsTable';
 import HelpersTable from '../components/HelpersTable';
-
 
 interface DashboardStats {
   totalRequests: number;

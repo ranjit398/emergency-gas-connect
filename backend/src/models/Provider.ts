@@ -8,6 +8,7 @@ export interface IProvider extends Document {
   location: GeoLocation;
   address: string;
   contactNumber: string;
+  phone?: string;
   registrationNumber: string;
   licenseNumber: string;
   licenseExpiry: Date;
@@ -24,6 +25,8 @@ export interface IProvider extends Document {
   rating: number;
   totalRatings: number;
   completedRequests: number;
+  lpgStock: number;
+  cngStock: number;
   bankDetails: {
     accountName: string;
     accountNumber: string;
@@ -74,6 +77,11 @@ const providerSchema = new Schema<IProvider>(
       type: String,
       required: true,
       match: [/^[0-9]{10,}$/, 'Valid phone number is required'],
+    },
+    phone: {
+      type: String,
+      match: [/^[0-9]{10,}$/, 'Valid phone number is required'],
+      sparse: true,
     },
     registrationNumber: {
       type: String,
@@ -132,6 +140,16 @@ const providerSchema = new Schema<IProvider>(
     completedRequests: {
       type: Number,
       default: 0,
+    },
+    lpgStock: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    cngStock: {
+      type: Number,
+      default: 0,
+      min: 0,
     },
     bankDetails: {
       accountName: String,

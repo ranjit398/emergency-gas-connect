@@ -3,6 +3,7 @@ import { JWTPayload } from '@types';
 import { verifyToken } from '@utils/jwt';
 import messageService from '@services/MessageService';
 import { registerChatHandlers, getOnlineUsers } from '@socket/chat.handler';
+import { registerDashboardHandlers } from '@socket/dashboard.handler';
 import logger from '@utils/logger';
 
 interface AuthenticatedSocket extends Socket {
@@ -71,6 +72,9 @@ export const socketHandler = (io: Server): void => {
 
     // ── NEW: Register chat handlers ──────────────────────────────────────
     registerChatHandlers(io, socket);
+
+    // ── NEW: Register dashboard handlers ─────────────────────────────────
+    registerDashboardHandlers(io, socket);
 
     // ── Room management ──────────────────────────────────────────────────
     socket.on('join:request', (requestId: string) => {

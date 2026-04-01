@@ -14,6 +14,7 @@ export default function Signup() {
     email: '',
     password: '',
     confirmPassword: '',
+    phone: '',
     role: 'seeker',
   });
   const [error, setError] = useState('');
@@ -27,6 +28,17 @@ export default function Signup() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    // Validate phone for providers
+    if (formData.role === 'provider' && !formData.phone.trim()) {
+      setError('Phone number is required for providers');
+      return;
+    }
+
+    if (formData.phone && !/^[0-9]{10,}$/.test(formData.phone)) {
+      setError('Phone number must be at least 10 digits');
+      return;
+    }
 
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
@@ -44,11 +56,10 @@ export default function Signup() {
         password: formData.password,
         fullName: formData.fullName,
         role: formData.role,
-        // Don't send phone/address  backend has safe defaults
+        phone: formData.phone || undefined,
       });
       navigate('/');
     } catch (err: any) {
-      //  Axios wraps the real error inside err.response.data
       const msg =
         err?.response?.data?.error?.message ||
         err?.response?.data?.message ||
@@ -108,6 +119,26 @@ export default function Signup() {
                   <MenuItem value="provider">Gas Provider/Agency</MenuItem>
                 </Select>
               </FormControl>
+              {formData.role === 'provider' && (
+                <TextField
+                  label="Phone Number" type="tel" fullWidth required
+                  value={formData.phone}
+                  onChange={(e) => handleChange('phone', e.target.value)}
+                  margin="normal"
+                  placeholder="10 digit phone number"
+                  helperText="Required for providers. Minimum 10 digits."
+                />
+              )}
+              {formData.role !== 'provider' && (
+                <TextField
+                  label="Phone Number (Optional)" type="tel" fullWidth
+                  value={formData.phone}
+                  onChange={(e) => handleChange('phone', e.target.value)}
+                  margin="normal"
+                  placeholder="10 digit phone number"
+                  helperText="Optional. Minimum 10 digits if provided."
+                />
+              )}
               <TextField
                 label="Password" type="password" fullWidth required
                 value={formData.password}

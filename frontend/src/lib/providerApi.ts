@@ -5,6 +5,7 @@
 import api from './api';
 
 export const providerDashboardApi = {
+  // EXISTING ENDPOINTS
   getDashboard:   () => api.get('/provider-dashboard'),
   getTimeSeries:  () => api.get('/provider-dashboard/time-series'),
   getPendingOrders: () => api.get('/provider-dashboard/orders/pending'),
@@ -19,4 +20,33 @@ export const providerDashboardApi = {
     api.post(`/provider-dashboard/orders/${requestId}/collected`),
   fulfillDirect:  (requestId: string) =>
     api.post(`/provider-dashboard/fulfill/${requestId}`),
+
+  // ════════════════════════════════════════════════════════════════════════
+  // NEW ENHANCED ENDPOINTS
+  // ════════════════════════════════════════════════════════════════════════
+
+  // Dashboard Stats
+  getDashboardStats: () =>
+    api.get('/provider-dashboard/dashboard-stats'),
+
+  // Requests Management
+  getRequests: (page = 1, limit = 20, status?: string) =>
+    api.get('/provider-dashboard/requests', {
+      params: { page, limit, ...(status && { status }) },
+    }),
+
+  // Helpers Management
+  getHelpers: (page = 1, limit = 20) =>
+    api.get('/provider-dashboard/helpers', { params: { page, limit } }),
+
+  // Inventory Management
+  getInventory: () =>
+    api.get('/provider-dashboard/inventory'),
+
+  updateInventoryStock: (lpgStock: number, cngStock: number) =>
+    api.put('/provider-dashboard/inventory-stock', { lpgStock, cngStock }),
+
+  // Analytics
+  getAnalytics: () =>
+    api.get('/provider-dashboard/analytics-data'),
 };

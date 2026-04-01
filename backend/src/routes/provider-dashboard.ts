@@ -132,4 +132,26 @@ router.get('/requests/:requestId/recommended-helpers', asyncHandler(async (req: 
   res.json(success(recommendations, 'Helper recommendations loaded'));
 }));
 
+// ════════════════════════════════════════════════════════════════════════════════════
+// NEW ENHANCED DASHBOARD ROUTES
+// ════════════════════════════════════════════════════════════════════════════════════
+
+// GET /provider-dashboard/dashboard-stats
+router.get('/dashboard-stats', providerDashboardController.getDashboardStats);
+
+// GET /provider-dashboard/requests?page=1&limit=20&status=pending
+router.get('/requests', providerDashboardController.getRequests);
+
+// GET /provider-dashboard/helpers?page=1&limit=20
+router.get('/helpers', providerDashboardController.getHelpers);
+
+// GET /provider-dashboard/inventory
+router.get('/inventory', providerDashboardController.getInventory);
+
+// PUT /provider-dashboard/inventory
+router.put('/inventory-stock', providerDashboardController.updateInventoryStock);
+
+// GET /provider-dashboard/analytics-data
+router.get('/analytics-data', providerDashboardController.getAnalytics);
+
 export default router;
