@@ -106,9 +106,11 @@ export default function Navbar() {
               <MenuItem onClick={() => handleNavigate('/smart')}>
                  Smart Hub
               </MenuItem>
-              <MenuItem onClick={() => handleNavigate('/dashboard')}>
-                Dashboard
-              </MenuItem>
+              {user?.role !== 'provider' && (
+                <MenuItem onClick={() => handleNavigate('/dashboard')}>
+                  Dashboard
+                </MenuItem>
+              )}
               <MenuItem onClick={() => handleNavigate('/providers')}>
                 Providers
               </MenuItem>
