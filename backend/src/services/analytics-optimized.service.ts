@@ -1,6 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
-import { EmergencyRequest } from '../models/EmergencyRequest';
-import asyncHandler from 'express-async-handler';
+import { Request, Response } from 'express';
+import EmergencyRequest from '../models/EmergencyRequest';
+import { asyncHandler } from '@middleware/index';
 
 /**
  * Optimized Analytics Service
@@ -139,7 +139,7 @@ export class OptimizedAnalyticsService {
 
       // Transform for frontend
       const byDate: Record<string, any> = {};
-      analytics.forEach((item) => {
+      analytics.forEach((item: any) => {
         const date = item._id.date;
         if (!byDate[date]) {
           byDate[date] = {

@@ -11,7 +11,7 @@ import {
   Button,
 } from '@mui/material';
 import { motion } from 'framer-motion';
-import { providerApi } from '../lib/api/providerApi';
+import { providerDashboardApi as providerApi } from '../lib/providerApi';
 import { useDashboardCache, cacheKeys, useCachedData } from '../context/DashboardCacheContext';
 import { VirtualizedDataTable } from './VirtualizedDataTable';
 

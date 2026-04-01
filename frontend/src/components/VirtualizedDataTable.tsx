@@ -1,4 +1,5 @@
 import React, { useMemo, useCallback } from 'react';
+// @ts-ignore
 import { FixedSizeList as List } from 'react-window';
 import {
   Table,
