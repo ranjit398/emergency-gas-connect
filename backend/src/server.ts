@@ -91,6 +91,11 @@ app.get('/health', (_req: Request, res: Response) => {
   });
 });
 
+// ── Favicon - prevents 404 errors ──────────────────────────────────────────
+app.get('/favicon.ico', (_req: Request, res: Response) => {
+  res.status(204).end();
+});
+
 // ── API v1 routes ──────────────────────────────────────────────────────────
 const v1 = express.Router();
 
