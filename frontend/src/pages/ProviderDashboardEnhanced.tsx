@@ -255,7 +255,7 @@ export default function ProviderDashboard() {
   }
 
   return (
-    <Box sx={{ minHeight: '100vh', background: '#0a0a0b', pb: 8 }}>
+    <Box sx={{ minHeight: '100vh', background: 'linear-gradient(135deg, #f5f7fa 0%, #ffffff 100%)', pb: 8 }}>
       <Container maxWidth="xl" sx={{ pt: 4 }}>
         {/* Header */}
         <Box sx={{ mb: 4 }}>
@@ -266,10 +266,10 @@ export default function ProviderDashboard() {
           >
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
               <Box>
-                <Typography sx={{ fontSize: '32px', fontWeight: 800, mb: 0.5 }}>
+                <Typography sx={{ fontSize: '32px', fontWeight: 800, mb: 0.5, color: '#1a1a1a' }}>
                   Provider Dashboard
                 </Typography>
-                <Typography sx={{ fontSize: '14px', color: 'text.secondary' }}>
+                <Typography sx={{ fontSize: '14px', color: '#666666' }}>
                   Welcome back, {stats?.businessName || 'Provider'}
                 </Typography>
               </Box>

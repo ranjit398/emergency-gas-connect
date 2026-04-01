@@ -128,8 +128,9 @@ export default function InventoryCard({
         sx={{
           p: 3,
           borderRadius: 2,
-          background: 'linear-gradient(135deg, rgba(17,17,19,0.8) 0%, rgba(28,28,30,0.5) 100%)',
-          border: '1px solid rgba(255,255,255,0.1)',
+          background: '#ffffff',
+          border: '1px solid #e8eef5',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
         }}
       >
         {/* Header */}

@@ -121,7 +121,7 @@ export default function RequestsTable({
 
   if (!requests || requests.length === 0) {
     return (
-      <Paper sx={{ p: 4, textAlign: 'center', background: 'rgba(17,17,19,0.5)' }}>
+      <Paper sx={{ p: 4, textAlign: 'center', background: '#ffffff', border: '1px solid #e8eef5' }}>
         <Typography color="text.secondary" sx={{ fontSize: '16px' }}>
           No requests found
         </Typography>
@@ -135,8 +135,9 @@ export default function RequestsTable({
         sx={{
           p: 2.5,
           borderRadius: 2,
-          background: 'linear-gradient(135deg, rgba(17,17,19,0.8) 0%, rgba(28,28,30,0.5) 100%)',
-          border: '1px solid rgba(255,255,255,0.1)',
+          background: '#ffffff',
+          border: '1px solid #e8eef5',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
         }}
       >
         {/* Filters */}
@@ -163,7 +164,8 @@ export default function RequestsTable({
             }}
             sx={{
               '& .MuiOutlinedInput-root': {
-                background: 'rgba(255,255,255,0.05)',
+                background: '#ffffff',
+                borderColor: '#e8eef5',
               },
             }}
           />
@@ -174,7 +176,8 @@ export default function RequestsTable({
               label="Status"
               onChange={handleStatusChange}
               sx={{
-                background: 'rgba(255,255,255,0.05)',
+                background: '#ffffff',
+                borderColor: '#e8eef5',
               }}
             >
               <MenuItem value="all">All Statuses</MenuItem>
@@ -191,14 +194,14 @@ export default function RequestsTable({
         <TableContainer sx={{ borderRadius: 1.5, mb: 2 }}>
           <Table>
             <TableHead>
-              <TableRow sx={{ background: 'rgba(255,255,255,0.05)' }}>
-                <TableCell sx={{ fontWeight: 700, color: 'text.secondary' }}>Request ID</TableCell>
-                <TableCell sx={{ fontWeight: 700, color: 'text.secondary' }}>Cylinder</TableCell>
-                <TableCell sx={{ fontWeight: 700, color: 'text.secondary' }}>Seeker</TableCell>
-                <TableCell sx={{ fontWeight: 700, color: 'text.secondary' }}>Helper</TableCell>
-                <TableCell sx={{ fontWeight: 700, color: 'text.secondary' }}>Status</TableCell>
-                <TableCell sx={{ fontWeight: 700, color: 'text.secondary' }}>Priority</TableCell>
-                <TableCell sx={{ fontWeight: 700, color: 'text.secondary' }}>Created</TableCell>
+              <TableRow sx={{ background: '#f9fafb' }}>
+                <TableCell sx={{ fontWeight: 700, color: '#374151' }}>Request ID</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: '#374151' }}>Cylinder</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: '#374151' }}>Seeker</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: '#374151' }}>Helper</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: '#374151' }}>Status</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: '#374151' }}>Priority</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: '#374151' }}>Created</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -211,8 +214,8 @@ export default function RequestsTable({
                     exit={{ opacity: 0, x: 20 }}
                     transition={{ delay: index * 0.05 }}
                     sx={{
-                      '&:hover': { background: 'rgba(255,255,255,0.05)' },
-                      borderBottom: '1px solid rgba(255,255,255,0.1)',
+                      '&:hover': { background: '#f3f4f6' },
+                      borderBottom: '1px solid #e5e7eb',
                     }}
                   >
                     <TableCell sx={{ fontSize: '12px', fontFamily: 'monospace', color: '#3b82f6' }}>
