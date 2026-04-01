@@ -13,6 +13,12 @@ services:
       MONGO_INITDB_DATABASE: emergency-gas
     networks:
       - gasconnect
+    # ✅ Added: healthcheck so backend waits for mongo to be truly ready
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   backend:
     build:
@@ -30,12 +36,23 @@ services:
       JWT_EXPIRY: 7d
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
       JWT_REFRESH_EXPIRY: 30d
-      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
+      # ✅ Fix: was defaulting to localhost:5173 which breaks in Docker networking.
+      # The frontend container is accessed via its service name inside Docker,
+      # but for CORS the browser sends requests from the HOST machine's perspective.
+      # Set CORS_ORIGIN in your .env to the actual domain (Render URL or localhost).
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost}
       LOG_LEVEL: info
     depends_on:
-      - mongodb
+      mongodb:
+        # ✅ Fix: was depends_on without condition — backend started before mongo was ready
+        condition: service_healthy
     networks:
       - gasconnect
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5002/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
 
   frontend:
     build:
@@ -49,7 +66,9 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - backend
+      backend:
+        # ✅ Fix: wait for backend to be healthy before starting frontend
+        condition: service_healthy
     networks:
       - gasconnect
 

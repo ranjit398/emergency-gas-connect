@@ -1,18 +1,13 @@
-﻿import { useEffect } from 'react';
+﻿import { useEffect, useRef } from 'react';
 import { getSocket } from '../lib/socket';
 
 /**
- * Hook for provider-specific real-time Socket.io events
- * Listens for: new orders, new nearby requests, order status updates, dashboard updates
- * 
- * Usage:
- * useProviderSocket({
- *   providerId: 'provider-id-from-context',
- *   onNewOrder: () => refetchOrders(),
- *   onNewRequest: () => refetchRequests(),
- *   onDashboardUpdate: (event) => handleUpdate(event),
- *   onInventoryUpdate: (inventory) => updateUI(inventory),
- * });
+ * Hook for provider-specific real-time Socket.io events.
+ *
+ * Key fixes vs original:
+ * - Uses a ref for callbacks so the effect never re-runs due to callback identity changes
+ * - Guards provider:subscribe behind socket.connected / 'connect' event
+ * - Cleans up the 'connect' listener on unmount to prevent ghost listeners
  */
 export const useProviderSocket = (callbacks?: {
   providerId?: string;
@@ -23,101 +18,115 @@ export const useProviderSocket = (callbacks?: {
   onInventoryUpdate?: (inventory: any) => void;
   onStatsRefresh?: () => void;
 }) => {
+  // ✅ Keep callbacks in a ref so the effect only runs once per providerId change
+  const cbRef = useRef(callbacks);
+  cbRef.current = callbacks;
+
+  const providerId = callbacks?.providerId;
+
   useEffect(() => {
+    if (!providerId) return;
+
     const socket = getSocket();
 
-    // Subscribe to provider-specific events if providerId is available
-    if (callbacks?.providerId) {
-      console.log('[ProviderSocket] Subscribing to provider room:', callbacks.providerId);
-      socket.emit('provider:subscribe', callbacks.providerId);
+    // ✅ Join the provider room only once the socket is confirmed connected.
+    // Emitting before connect is a no-op — the original code hit this every time.
+    const joinRoom = () => {
+      console.log('[ProviderSocket] Subscribing to provider room:', providerId);
+      socket.emit('provider:subscribe', providerId);
+    };
+
+    if (socket.connected) {
+      joinRoom();
+    } else {
+      // Wait for the upcoming connect event — once only
+      socket.once('connect', joinRoom);
     }
 
-    // Listen for new orders from helpers
-    socket.on('provider:order:new', (data: any) => {
+    // ── Event handlers (all read from the ref so they're always fresh) ────
+
+    const onNewOrder = (data: any) => {
       console.log('[ProviderSocket] New order received', data);
-      callbacks?.onNewOrder?.();
-    });
+      cbRef.current?.onNewOrder?.();
+    };
 
-    // Listen for new nearby requests
-    socket.on('provider:request:nearby', (data: any) => {
+    const onNewRequest = (data: any) => {
       console.log('[ProviderSocket] New nearby request', data);
-      callbacks?.onNewRequest?.();
-    });
+      cbRef.current?.onNewRequest?.();
+    };
 
-    // Listen for order status changes
-    socket.on('provider:order:status-changed', (data: { orderId: string; status: string }) => {
+    const onOrderStatusChanged = (data: { orderId: string; status: string }) => {
       console.log('[ProviderSocket] Order status changed', data);
-      callbacks?.onOrderStatusChange?.(data.orderId, data.status);
-    });
+      cbRef.current?.onOrderStatusChange?.(data.orderId, data.status);
+    };
 
-    // Listen for emergency alerts (high-priority nearby requests)
-    socket.on('provider:emergency:alert', (data: any) => {
+    const onEmergencyAlert = (data: any) => {
       console.warn('[ProviderSocket] EMERGENCY ALERT', data);
-      // Could also trigger a notification here
-    });
+    };
 
-    // ════════════════════════════════════════════════════════════════════════
-    // NEW: Enhanced Dashboard Real-time Updates
-    // ════════════════════════════════════════════════════════════════════════
-
-    // Listen for general dashboard updates (for provider:${providerId} room)
-    socket.on('dashboard:update', (event: any) => {
+    const onDashboardUpdate = (event: any) => {
       console.log('[ProviderSocket] Dashboard update:', event);
-      callbacks?.onDashboardUpdate?.(event);
-    });
+      cbRef.current?.onDashboardUpdate?.(event);
+    };
 
-    // Listen for inventory changes
-    socket.on('inventory:updated', (data: any) => {
+    const onInventoryUpdated = (data: any) => {
       console.log('[ProviderSocket] Inventory updated:', data);
-      callbacks?.onInventoryUpdate?.(data);
-    });
+      cbRef.current?.onInventoryUpdate?.(data);
+    };
 
-    // Listen for stats refresh notification
-    socket.on('stats:refresh', () => {
+    const onStatsRefresh = () => {
       console.log('[ProviderSocket] Stats refresh requested');
-      callbacks?.onStatsRefresh?.();
-    });
+      cbRef.current?.onStatsRefresh?.();
+    };
 
-    // Listen for request updated events  
-    socket.on('request:updated', (data: any) => {
+    const onRequestUpdated = (data: any) => {
       console.log('[ProviderSocket] Request updated:', data);
-      callbacks?.onDashboardUpdate?.({
-        type: 'REQUEST_UPDATED',
-        data,
-      });
-    });
+      cbRef.current?.onDashboardUpdate?.({ type: 'REQUEST_UPDATED', data });
+    };
 
-    // Listen for helper status changes
-    socket.on('helper:updated', (data: any) => {
+    const onHelperUpdated = (data: any) => {
       console.log('[ProviderSocket] Helper status updated:', data);
-      callbacks?.onDashboardUpdate?.({
-        type: 'HELPER_UPDATE',
-        data,
-      });
-    });
+      cbRef.current?.onDashboardUpdate?.({ type: 'HELPER_UPDATE', data });
+    };
 
-    // Listen for new requests assigned to provider
-    socket.on('request:new', (data: any) => {
+    const onRequestNew = (data: any) => {
       console.log('[ProviderSocket] New request received:', data);
-      callbacks?.onDashboardUpdate?.({
-        type: 'NEW_REQUEST',
-        data,
-      });
-    });
+      cbRef.current?.onDashboardUpdate?.({ type: 'NEW_REQUEST', data });
+    };
+
+    // Register all listeners
+    socket.on('provider:order:new',           onNewOrder);
+    socket.on('provider:request:nearby',      onNewRequest);
+    socket.on('provider:order:status-changed',onOrderStatusChanged);
+    socket.on('provider:emergency:alert',     onEmergencyAlert);
+    socket.on('dashboard:update',             onDashboardUpdate);
+    socket.on('inventory:updated',            onInventoryUpdated);
+    socket.on('stats:refresh',                onStatsRefresh);
+    socket.on('request:updated',              onRequestUpdated);
+    socket.on('helper:updated',               onHelperUpdated);
+    socket.on('request:new',                  onRequestNew);
 
     return () => {
-      socket.off('provider:order:new');
-      socket.off('provider:request:nearby');
-      socket.off('provider:order:status-changed');
-      socket.off('provider:emergency:alert');
-      socket.off('dashboard:update');
-      socket.off('inventory:updated');
-      socket.off('stats:refresh');
-      socket.off('request:updated');
-      socket.off('helper:updated');
-      socket.off('request:new');
+      // ✅ Remove the pending connect listener if we never connected
+      socket.off('connect', joinRoom);
+
+      socket.off('provider:order:new',           onNewOrder);
+      socket.off('provider:request:nearby',      onNewRequest);
+      socket.off('provider:order:status-changed',onOrderStatusChanged);
+      socket.off('provider:emergency:alert',     onEmergencyAlert);
+      socket.off('dashboard:update',             onDashboardUpdate);
+      socket.off('inventory:updated',            onInventoryUpdated);
+      socket.off('stats:refresh',                onStatsRefresh);
+      socket.off('request:updated',              onRequestUpdated);
+      socket.off('helper:updated',               onHelperUpdated);
+      socket.off('request:new',                  onRequestNew);
+
+      // Leave the room on cleanup
+      if (socket.connected) {
+        socket.emit('provider:unsubscribe', providerId);
+      }
     };
-  }, [callbacks]);
+  }, [providerId]); // ✅ Only re-run when providerId changes — not on every callback re-render
 };
 
 export default useProviderSocket;
