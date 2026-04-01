@@ -69,22 +69,28 @@ const getCorsOrigins = (): string[] => {
 };
 
 const io = new SocketIOServer(httpServer, {
-  path: '/socket.io/', // ✅ Explicit path
-  serveClient: false, // Don't serve Socket.IO client (we use npm package)
+  path: '/socket.io/', // Explicit path
+  serveClient: false,
+  // ✅ FOR RENDER: Use true to accept all origins with proper CORS headers
+  // Socket.IO will automatically echo back the origin in Access-Control-Allow-Origin
   cors: {
-    // Use static list for reliability on Render proxy
-    origin: getCorsOrigins(),
+    origin: true, // Accept all origins, but *with* CORS headers
     methods: ['GET', 'POST', 'OPTIONS'],
     credentials: true,
-    maxAge: 86400, // 24 hours - cache preflight requests
   },
-  // Polling MUST come first for Render.com compatibility
-  // Websocket upgrades automatically when available
+  // Polling MUST come first for Render proxy compatibility
   transports: ['polling', 'websocket'],
-  pingTimeout: 60000,
+  // ✅ Increase timeouts for Render's slower network
+  pingTimeout: 120000, // 120s
   pingInterval: 25000,
+  // ✅ Allow upgrade from polling to websocket
+  allowUpgrades: true,
   // Allow larger payloads for analytics/bulk data
   maxHttpBufferSize: 10 * 1024 * 1024, // 10MB
+  // ✅ Render-specific: Add explicit header to handle proxy
+  perMessageDeflate: {
+    threshold: 1024, // Only compress if > 1KB
+  },
 });
 
 // ✅ Log Socket.IO initialization
