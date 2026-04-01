@@ -90,7 +90,10 @@ export default function RequestsTable({
   useEffect(() => {
     if (!requests) return;
 
-    let filtered = requests;
+    // Ensure requests is an array
+    const requestsArray = Array.isArray(requests) ? requests : [];
+
+    let filtered = requestsArray;
 
     if (searchTerm) {
       filtered = filtered.filter(

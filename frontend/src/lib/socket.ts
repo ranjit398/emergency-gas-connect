@@ -1,9 +1,11 @@
 ﻿import { io, Socket } from 'socket.io-client';
 import { tokenStorage } from './api';
 
-// Connect to backend - in dev use localhost:5002, production will use same host
+// Connect to backend - in dev use localhost:5002, production will use environment variable
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 
-  (import.meta.env.DEV ? 'http://localhost:5002' : `${window.location.protocol}//${window.location.hostname}`)
+  (import.meta.env.DEV 
+    ? 'http://localhost:5002' 
+    : 'https://emergency-gas-backend.onrender.com');
 
 let socket: Socket | null = null;
 
@@ -13,9 +15,12 @@ export const getSocket = (): Socket => {
       auth: { token: tokenStorage.getAccess() },
       transports: ['websocket', 'polling'],
       reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
+      reconnectionAttempts: 10,
+      reconnectionDelay: 2000,
+      reconnectionDelayMax: 5000,
       timeout: 20000,
+      secure: true,
+      rejectUnauthorized: false,
     });
 
     socket.on('connect', () => {
@@ -23,11 +28,15 @@ export const getSocket = (): Socket => {
     });
 
     socket.on('connect_error', (err) => {
-      console.error('[Socket] Connection error:', err.message);
+      console.error('[Socket] Connection error:', err);
     });
 
     socket.on('disconnect', (reason) => {
       console.warn('[Socket] Disconnected:', reason);
+    });
+
+    socket.on('error', (err) => {
+      console.error('[Socket] Error event:', err);
     });
   }
   return socket;

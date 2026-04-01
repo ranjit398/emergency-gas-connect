@@ -131,8 +131,10 @@ export default function ProviderDashboard() {
         requestsLimit,
         requestsStatus
       );
-      setRequestsData(res.data.data);
-      setRequestsTotal(res.data.pagination?.total || 0);
+      // API response structure: { success: true, data: { requests: [...], pagination: {...} } }
+      const requestsArray = Array.isArray(res.data.data?.requests) ? res.data.data.requests : [];
+      setRequestsData(requestsArray);
+      setRequestsTotal(res.data.data?.pagination?.total || 0);
       setError(null);
     } catch (err: any) {
       const msg = err?.response?.data?.error?.message || 'Failed to load requests';
@@ -151,8 +153,10 @@ export default function ProviderDashboard() {
         helpersPage + 1,
         helpersLimit
       );
-      setHelpersData(res.data.data);
-      setHelpersTotal(res.data.pagination?.total || 0);
+      // API response structure: { success: true, data: { helpers: [...], pagination: {...} } }
+      const helpersArray = Array.isArray(res.data.data?.helpers) ? res.data.data.helpers : [];
+      setHelpersData(helpersArray);
+      setHelpersTotal(res.data.data?.pagination?.total || 0);
       setError(null);
     } catch (err: any) {
       const msg = err?.response?.data?.error?.message || 'Failed to load helpers';
@@ -168,7 +172,8 @@ export default function ProviderDashboard() {
     try {
       setInventoryLoading(true);
       const res = await providerDashboardApi.getInventory();
-      setInventory(res.data.data);
+      // API response structure: { success: true, data: { lpgStock, cngStock, totalStock, lastUpdated } }
+      setInventory(res.data.data || { lpgStock: 0, cngStock: 0, totalStock: 0, lastUpdated: new Date().toISOString() });
       setError(null);
     } catch (err: any) {
       const msg = err?.response?.data?.error?.message || 'Failed to load inventory';
