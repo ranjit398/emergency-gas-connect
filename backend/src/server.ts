@@ -43,37 +43,38 @@ const app: Express = express();
 const httpServer = createServer(app);
 
 // ── Socket.IO ─────────────────────────────────────────────────────────────
-const getCorsOrigins = () => {
-  const origins = config.corsOrigin;
-  // Also add production frontend URL if not already there
+const getCorsOrigins = (): string[] => {
+  const origins = [...config.corsOrigin]; // Copy array
   const productionFrontend = 'https://emergency-gas-frontend.onrender.com';
-  if (!origins.includes(productionFrontend) && !origins.some(o => o.includes('onrender.com'))) {
+  
+  // Add production frontend if not already included
+  if (!origins.some(o => o.includes('emergency-gas-frontend.onrender.com'))) {
     origins.push(productionFrontend);
   }
+  
+  // For development, add common localhost variations
+  if (config.nodeEnv !== 'production') {
+    const devOrigins = [
+      'http://localhost:5173',
+      'http://localhost:3000',
+      'http://127.0.0.1:5173',
+      'http://127.0.0.1:3000',
+    ];
+    devOrigins.forEach(dev => {
+      if (!origins.includes(dev)) origins.push(dev);
+    });
+  }
+  
   return origins;
 };
 
 const io = new SocketIOServer(httpServer, {
   cors: {
-    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-      const allowedOrigins = getCorsOrigins();
-      
-      // Allow requests with no origin (Postman, mobile apps, etc)
-      if (!origin) return callback(null, true);
-      
-      // Check if origin is in allowed list
-      if (allowedOrigins.some(allowed => {
-        const pattern = allowed.replace(/\*/g, '.*');
-        return new RegExp(pattern).test(origin);
-      })) {
-        callback(null, true);
-      } else {
-        console.warn(`[CORS] Rejected origin: ${origin}`);
-        callback(new Error('CORS origin not allowed'));
-      }
-    },
+    // Use static list for reliability on Render proxy
+    origin: getCorsOrigins(),
     methods: ['GET', 'POST', 'OPTIONS'],
     credentials: true,
+    maxAge: 86400, // 24 hours - cache preflight requests
   },
   // Polling MUST come first for Render.com compatibility
   // Websocket upgrades automatically when available
@@ -91,6 +92,40 @@ setReassignmentIO(io);
 
 // ── Security middleware ────────────────────────────────────────────────────
 app.use(helmet({ crossOriginEmbedderPolicy: false }));
+
+// ── CORS headers BEFORE Socket.IO for polling transport ──────────────────
+const corsOriginsList = config.corsOrigin;
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const origin = req.headers.origin;
+  
+  // Log for debugging
+  if (req.path.includes('socket.io')) {
+    console.log(`[CORS Debug] socket.io request - Origin: ${origin}, Path: ${req.path}`);
+  }
+  
+  if (origin) {
+    const allowed = corsOriginsList.some(allowed => {
+      const pattern = allowed.replace(/\*/g, '.*');
+      return new RegExp(pattern).test(origin);
+    });
+    
+    if (allowed) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+      res.setHeader('Vary', 'Origin');
+    }
+  }
+  
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  
+  next();
+});
+
+// ── Express CORS middleware (for REST endpoints) ───────────────────────────
 app.use(cors({
   origin: config.corsOrigin,
   credentials: true,
