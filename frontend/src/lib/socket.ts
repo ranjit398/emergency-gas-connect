@@ -29,6 +29,13 @@ export const getSocket = (): Socket => {
 
     socket.on('connect_error', (err) => {
       console.error('[Socket] Connection error:', err);
+      // Log additional debug information
+      console.error('[Socket] Backend URL:', SOCKET_URL);
+      console.error('[Socket] Error details:', {
+        message: err.message,
+        type: err.type,
+        data: (err as any).data,
+      });
     });
 
     socket.on('disconnect', (reason) => {
