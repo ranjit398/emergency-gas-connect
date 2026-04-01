@@ -95,36 +95,58 @@ setLifecycleIO(io);
 setReassignmentIO(io);
 
 // ── Security middleware ────────────────────────────────────────────────────
-app.use(helmet({ crossOriginEmbedderPolicy: false }));
+// ✅ Configure helmet to allow Socket.IO's eval (required for some transports)
+app.use(helmet({
+  crossOriginEmbedderPolicy: false,
+  // ✅ CSP: Allow eval for Socket.IO client functionality
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      scriptSrc: ["'self'", "'unsafe-eval'", "'unsafe-inline'"], // ✅ unsafe-eval for Socket.IO
+      fontSrc: ["'self'", "https://fonts.gstatic.com", "https://fonts.googleapis.com"],
+      connectSrc: [
+        "'self'",
+        "https://emergency-gas-backend.onrender.com",
+        "wss://emergency-gas-backend.onrender.com", // ✅ WebSocket
+        "https://emergency-gas-frontend.onrender.com",
+      ],
+      imgSrc: ["'self'", "data:", "https:"],
+    },
+  },
+}));
 
 // ── CORS headers and middleware (Socket.IO will add its own) ────────────────
 const corsOriginsList = config.corsOrigin;
 app.use((req: Request, res: Response, next: NextFunction) => {
-  // Skip socket.io - let Socket.IO's built-in CORS handle it
-  if (req.path.startsWith('/socket.io/')) {
-    console.log(`[Socket.IO Route] ${req.method} ${req.path}`);
-    return next(); // Let Socket.IO's middleware handle it
-  }
-  
   const origin = req.headers.origin;
   
+  // ✅ Allow all socket.io requests through to Socket.IO engine
+  if (req.path.startsWith('/socket.io/')) {
+    return next(); // Let Socket.IO's native CORS handler process it
+  }
+  
+  // ✅ Set CORS headers for all cross-origin requests
   if (origin) {
     const allowed = corsOriginsList.some(allowed => {
       const pattern = allowed.replace(/\*/g, '.*');
       return new RegExp(pattern).test(origin);
     });
     
-    if (allowed) {
+    if (allowed || config.nodeEnv !== 'production') {
+      // ✅ Always set headers (will be overridden by express-cors if needed)
       res.setHeader('Access-Control-Allow-Origin', origin);
       res.setHeader('Access-Control-Allow-Credentials', 'true');
-      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+      res.setHeader('Access-Control-Max-Age', '86400'); // 24 hours
       res.setHeader('Vary', 'Origin');
     }
   }
   
+  // ✅ Handle preflight OPTIONS requests
   if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
+    return res.sendStatus(204); // 204 No Content for preflight
   }
   
   next();
