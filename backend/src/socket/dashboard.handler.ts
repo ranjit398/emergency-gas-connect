@@ -6,7 +6,7 @@ import { Server } from 'socket.io';
 import logger from '@utils/logger';
 
 /**
- * Emit dashboard update to all providers
+ * Emit dashboard update to provider-specific room
  * Called when request status changes
  */
 export const emitDashboardUpdate = (
@@ -21,8 +21,8 @@ export const emitDashboardUpdate = (
   }
 ) => {
   try {
-    // Broadcast to all connected providers
-    io.to('providers').emit('dashboard_update', {
+    // Emit to provider-specific room
+    io.to(`provider:${event.providerId}`).emit('dashboard:update', {
       type: event.type,
       providerId: event.providerId,
       requestId: event.requestId,
@@ -32,7 +32,18 @@ export const emitDashboardUpdate = (
       data: event.data,
     });
 
-    logger.info(`[Dashboard] Emitted ${event.type} to providers`);
+    // Also broadcast to all connected providers
+    io.to('providers').emit('dashboard:update', {
+      type: event.type,
+      providerId: event.providerId,
+      requestId: event.requestId,
+      helperId: event.helperId,
+      status: event.status,
+      timestamp: new Date().toISOString(),
+      data: event.data,
+    });
+
+    logger.info(`[Dashboard] Emitted ${event.type} to provider ${event.providerId}`);
   } catch (error) {
     logger.error('[Dashboard] Failed to emit update:', error);
   }
@@ -48,8 +59,8 @@ export const emitRequestUpdate = (
   update: Record<string, any>
 ) => {
   try {
-    // Emit to provider room
-    io.to(`provider:${providerId}`).emit('request_updated', {
+    // Emit to provider-specific room
+    io.to(`provider:${providerId}`).emit('request:updated', {
       requestId,
       ...update,
       timestamp: new Date().toISOString(),
@@ -62,14 +73,14 @@ export const emitRequestUpdate = (
       timestamp: new Date().toISOString(),
     });
 
-    logger.info(`[Dashboard] Emitted request update for ${requestId}`);
+    logger.info(`[Dashboard] Emitted request update for ${requestId} to provider ${providerId}`);
   } catch (error) {
     logger.error('[Dashboard] Failed to emit request update:', error);
   }
 };
 
 /**
- * Emit helper availability change
+ * Emit helper availability change to provider
  */
 export const emitHelperUpdate = (
   io: Server,
@@ -78,14 +89,23 @@ export const emitHelperUpdate = (
   isAvailable: boolean
 ) => {
   try {
-    io.to('providers').emit('helper_updated', {
+    // Emit to provider-specific room
+    io.to(`provider:${providerId}`).emit('helper:updated', {
       providerId,
       helperId,
       isAvailable,
       timestamp: new Date().toISOString(),
     });
 
-    logger.info(`[Dashboard] Emitted helper update: ${helperId} -> ${isAvailable}`);
+    // Also broadcast to all providers
+    io.to('providers').emit('helper:updated', {
+      providerId,
+      helperId,
+      isAvailable,
+      timestamp: new Date().toISOString(),
+    });
+
+    logger.info(`[Dashboard] Emitted helper update: ${helperId} -> ${isAvailable} for provider ${providerId}`);
   } catch (error) {
     logger.error('[Dashboard] Failed to emit helper update:', error);
   }

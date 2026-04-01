@@ -199,9 +199,13 @@ export default function ProviderDashboard() {
   // ════════════════════════════════════════════════════════════════════════════════════
 
   useProviderSocket({
+    providerId: user?.id, // Subscribe to provider-specific room
     onDashboardUpdate: (event) => {
       console.log('[Dashboard] Update received:', event);
-      loadStats(); // Refresh stats on update
+      // Reload all dashboard data when updates come through
+      loadStats();
+      loadRequests();
+      loadHelpers();
     },
     onInventoryUpdate: (data) => {
       console.log('[Inventory] Update received:', data);
@@ -216,6 +220,8 @@ export default function ProviderDashboard() {
     onStatsRefresh: () => {
       console.log('[Stats] Refresh requested');
       loadStats();
+      loadRequests();
+      loadHelpers();
     },
   });
 

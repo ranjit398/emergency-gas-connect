@@ -7,6 +7,7 @@ import { getSocket } from '../lib/socket';
  * 
  * Usage:
  * useProviderSocket({
+ *   providerId: 'provider-id-from-context',
  *   onNewOrder: () => refetchOrders(),
  *   onNewRequest: () => refetchRequests(),
  *   onDashboardUpdate: (event) => handleUpdate(event),
@@ -14,6 +15,7 @@ import { getSocket } from '../lib/socket';
  * });
  */
 export const useProviderSocket = (callbacks?: {
+  providerId?: string;
   onNewOrder?: () => void;
   onNewRequest?: () => void;
   onOrderStatusChange?: (orderId: string, status: string) => void;
@@ -23,6 +25,12 @@ export const useProviderSocket = (callbacks?: {
 }) => {
   useEffect(() => {
     const socket = getSocket();
+
+    // Subscribe to provider-specific events if providerId is available
+    if (callbacks?.providerId) {
+      console.log('[ProviderSocket] Subscribing to provider room:', callbacks.providerId);
+      socket.emit('provider:subscribe', callbacks.providerId);
+    }
 
     // Listen for new orders from helpers
     socket.on('provider:order:new', (data: any) => {
@@ -52,26 +60,26 @@ export const useProviderSocket = (callbacks?: {
     // NEW: Enhanced Dashboard Real-time Updates
     // ════════════════════════════════════════════════════════════════════════
 
-    // Listen for general dashboard updates
-    socket.on('dashboard_update', (event: any) => {
+    // Listen for general dashboard updates (for provider:${providerId} room)
+    socket.on('dashboard:update', (event: any) => {
       console.log('[ProviderSocket] Dashboard update:', event);
       callbacks?.onDashboardUpdate?.(event);
     });
 
     // Listen for inventory changes
-    socket.on('inventory_updated', (data: any) => {
+    socket.on('inventory:updated', (data: any) => {
       console.log('[ProviderSocket] Inventory updated:', data);
       callbacks?.onInventoryUpdate?.(data);
     });
 
     // Listen for stats refresh notification
-    socket.on('stats_refresh', () => {
+    socket.on('stats:refresh', () => {
       console.log('[ProviderSocket] Stats refresh requested');
       callbacks?.onStatsRefresh?.();
     });
 
-    // Listen for request updated events
-    socket.on('request_updated', (data: any) => {
+    // Listen for request updated events  
+    socket.on('request:updated', (data: any) => {
       console.log('[ProviderSocket] Request updated:', data);
       callbacks?.onDashboardUpdate?.({
         type: 'REQUEST_UPDATED',
@@ -80,10 +88,19 @@ export const useProviderSocket = (callbacks?: {
     });
 
     // Listen for helper status changes
-    socket.on('helper_updated', (data: any) => {
+    socket.on('helper:updated', (data: any) => {
       console.log('[ProviderSocket] Helper status updated:', data);
       callbacks?.onDashboardUpdate?.({
         type: 'HELPER_UPDATE',
+        data,
+      });
+    });
+
+    // Listen for new requests assigned to provider
+    socket.on('request:new', (data: any) => {
+      console.log('[ProviderSocket] New request received:', data);
+      callbacks?.onDashboardUpdate?.({
+        type: 'NEW_REQUEST',
         data,
       });
     });
@@ -93,11 +110,12 @@ export const useProviderSocket = (callbacks?: {
       socket.off('provider:request:nearby');
       socket.off('provider:order:status-changed');
       socket.off('provider:emergency:alert');
-      socket.off('dashboard_update');
-      socket.off('inventory_updated');
-      socket.off('stats_refresh');
-      socket.off('request_updated');
-      socket.off('helper_updated');
+      socket.off('dashboard:update');
+      socket.off('inventory:updated');
+      socket.off('stats:refresh');
+      socket.off('request:updated');
+      socket.off('helper:updated');
+      socket.off('request:new');
     };
   }, [callbacks]);
 };
