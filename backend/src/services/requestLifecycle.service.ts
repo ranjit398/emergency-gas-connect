@@ -125,14 +125,6 @@ export const markInProgress = async (
     });
 
     if (request.providerId) {
-      emitDashboardUpdate(io, {
-        type: 'REQUEST_ACCEPTED', // Still in accepted phase, just 'in_progress'
-        providerId: request.providerId.toString(),
-        requestId: request.id.toString(),
-        helperId: request.helperId.toString(),
-        status: 'in_progress',
-      });
-
       emitDashboardEvent(io, request.providerId.toString(), 'REQUEST_IN_PROGRESS', {
         requestId: request.id.toString(),
         status: 'in_progress',
