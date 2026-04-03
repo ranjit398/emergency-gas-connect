@@ -7,7 +7,7 @@
 import EmergencyRequest, { IEmergencyRequest } from '@models/EmergencyRequest';
 import logger from '@utils/logger';
 import { broadcastActivity, notifyUser } from '@socket/handlers';
-import { emitDashboardEvent, pushDashboardUpdate } from '@socket/dashboard.handler';
+import { emitDashboardEvent } from '@socket/dashboard.handler';
 import { Server as SocketIOServer } from 'socket.io';
 
 let io: SocketIOServer;
@@ -20,7 +20,6 @@ const REQUEST_EXPIRATION_MINUTES = 15; // Auto-expire after 15 minutes
 
 /**
  * Transition request from pending → accepted
- * Records acceptedAt timestamp and calculates response time
  */
 export const acceptRequest = async (
   requestId: string,
@@ -35,7 +34,7 @@ export const acceptRequest = async (
         acceptedAt: new Date(),
         assignedAt: new Date(),
       },
-      $inc: { reassignmentCount: 0 }, // Already counted in reassignment
+      $inc: { reassignmentCount: 0 },
     },
     { new: true }
   );
@@ -44,14 +43,12 @@ export const acceptRequest = async (
     throw new Error('Request not found');
   }
 
-  // Calculate response time in seconds
   const responseTime = Math.round(
     (request.acceptedAt!.getTime() - request.createdAt.getTime()) / 1000
   );
   request.helperResponseTime = responseTime;
   await request.save();
 
-  // Notify all connected clients
   if (io) {
     io.emit('request:accepted', {
       requestId: request.id,
@@ -61,21 +58,18 @@ export const acceptRequest = async (
       seekerId: request.seekerId,
     });
 
-    // Notify specific seeker
     notifyUser(io, request.seekerId.toString(), 'request:accepted', {
       requestId: request.id,
       message: 'Your request has been accepted!',
     });
 
-    // Broadcast to activity feed
     broadcastActivity(io, {
       type: 'REQUEST_ACCEPTED',
-      message: `Helper accepted request`,
+      message: 'Helper accepted request',
       requestId: request.id.toString(),
       actorId: helperId,
       timestamp: new Date(),
     });
-
 
     if (request.providerId) {
       emitDashboardEvent(io, request.providerId.toString(), 'REQUEST_ACCEPTED', {
@@ -84,6 +78,7 @@ export const acceptRequest = async (
         status: 'accepted',
         acceptedAt: request.acceptedAt,
       });
+    }
   }
 
   logger.info(`Request ${requestId} accepted by helper ${helperId}`);
@@ -92,7 +87,6 @@ export const acceptRequest = async (
 
 /**
  * Transition request from accepted → in_progress
- * Helper is on the way / starting service
  */
 export const markInProgress = async (
   requestId: string,
@@ -100,10 +94,7 @@ export const markInProgress = async (
 ): Promise<IEmergencyRequest> => {
   const request = await EmergencyRequest.findById(requestId);
 
-  if (!request) {
-    throw new Error('Request not found');
-  }
-
+  if (!request) throw new Error('Request not found');
   if (request.helperId?.toString() !== helperId) {
     throw new Error('Only assigned helper can mark request as in progress');
   }
@@ -139,7 +130,6 @@ export const markInProgress = async (
 
 /**
  * Transition request from in_progress/accepted → completed
- * Records completion timestamp and calculates total time
  */
 export const completeRequest = async (
   requestId: string,
@@ -147,10 +137,7 @@ export const completeRequest = async (
 ): Promise<IEmergencyRequest> => {
   const request = await EmergencyRequest.findById(requestId);
 
-  if (!request) {
-    throw new Error('Request not found');
-  }
-
+  if (!request) throw new Error('Request not found');
   if (request.helperId?.toString() !== helperId) {
     throw new Error('Only assigned helper can complete request');
   }
@@ -174,16 +161,16 @@ export const completeRequest = async (
 
     broadcastActivity(io, {
       type: 'REQUEST_COMPLETED',
-      message: `Request completed by helper`,
+      message: 'Request completed by helper',
       requestId: request.id.toString(),
-      actorId: request.helperId.toString(),
+      actorId: request.helperId!.toString(),
       timestamp: new Date(),
     });
 
     if (request.providerId) {
       emitDashboardEvent(io, request.providerId.toString(), 'REQUEST_COMPLETED', {
         requestId: request.id.toString(),
-        helperId: request.helperId.toString(),
+        helperId: request.helperId!.toString(),
         status: 'completed',
         completedAt: request.completedAt,
       });
@@ -195,7 +182,7 @@ export const completeRequest = async (
 };
 
 /**
- * Cancel request (seeker cancels before acceptance)
+ * Cancel request
  */
 export const cancelRequest = async (
   requestId: string,
@@ -204,10 +191,7 @@ export const cancelRequest = async (
 ): Promise<IEmergencyRequest> => {
   const request = await EmergencyRequest.findById(requestId);
 
-  if (!request) {
-    throw new Error('Request not found');
-  }
-
+  if (!request) throw new Error('Request not found');
   if (userRole === 'seeker' && request.seekerId.toString() !== userId) {
     throw new Error('Only seeker can cancel their request');
   }
@@ -241,8 +225,7 @@ export const cancelRequest = async (
 };
 
 /**
- * Auto-expire requests that haven't been accepted within X minutes
- * Run as a scheduled job
+ * Auto-expire pending requests older than X minutes
  */
 export const autoExpireRequests = async (): Promise<number> => {
   const expirationTime = new Date(
@@ -250,21 +233,12 @@ export const autoExpireRequests = async (): Promise<number> => {
   );
 
   const result = await EmergencyRequest.updateMany(
-    {
-      status: 'pending',
-      createdAt: { $lt: expirationTime },
-    },
-    {
-      $set: {
-        status: 'expired',
-        expiredAt: new Date(),
-      },
-    }
+    { status: 'pending', createdAt: { $lt: expirationTime } },
+    { $set: { status: 'expired', expiredAt: new Date() } }
   );
 
   if (result.modifiedCount > 0) {
     logger.info(`Auto-expired ${result.modifiedCount} pending requests`);
-
     if (io) {
       io.emit('requests:auto_expired', {
         count: result.modifiedCount,
@@ -282,11 +256,9 @@ export const autoExpireRequests = async (): Promise<number> => {
 export const getRequestTimeline = async (requestId: string) => {
   const request = await EmergencyRequest.findById(requestId);
 
-  if (!request) {
-    throw new Error('Request not found');
-  }
+  if (!request) throw new Error('Request not found');
 
-  const timeline = {
+  return {
     created: request.createdAt,
     accepted: request.acceptedAt || null,
     inProgress: request.inProgressAt || null,
@@ -300,8 +272,6 @@ export const getRequestTimeline = async (requestId: string) => {
         : null,
     responseTime: request.helperResponseTime || null,
   };
-
-  return timeline;
 };
 
 export default {
