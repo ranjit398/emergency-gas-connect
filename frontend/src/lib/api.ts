@@ -1,6 +1,10 @@
 ﻿import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5002/api/v1';
+// ─────────────────────────────────────────────────────────────────────────────
+// CRITICAL: Match SOCKET_URL domain to ensure consistent backend communication
+// ─────────────────────────────────────────────────────────────────────────────
+const SOCKET_DOMAIN = import.meta.env.DEV ? 'http://localhost:5002' : 'https://emergency-gas-backend.onrender.com';
+const BASE_URL = import.meta.env.VITE_API_URL || `${SOCKET_DOMAIN}/api/v1`;
 
 // Token storage helpers  keeps auth logic in one place
 export const tokenStorage = {

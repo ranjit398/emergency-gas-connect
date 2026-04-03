@@ -154,6 +154,25 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CRITICAL: Apply CORS headers to EVERYTHING including /socket.io/ polling
+// Socket.IO polling transport needs explicit CORS headers on all responses
+// ─────────────────────────────────────────────────────────────────────────────
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const origins = getCorsOrigins();
+  const origin = req.headers.origin || '';
+  
+  // Check if origin is allowed
+  if (origins.some(o => origin.includes(o) || o === '*')) {
+    res.set('Access-Control-Allow-Origin', origin);
+    res.set('Access-Control-Allow-Credentials', 'true');
+    res.set('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+    res.set('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+  }
+  next();
+});
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(mongoSanitize());
