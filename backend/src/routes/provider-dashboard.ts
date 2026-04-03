@@ -2,7 +2,7 @@
 // Add to server.ts: v1.use('/provider', providerDashboardRoutes);
 
 import express, { Router } from 'express';
-import ctrl, { updateInventoryValidation } from '@controllers/providerDashboard.controller';
+import ctrl, { updateInventoryValidation } from '@controllers/ProviderDashboardController';
 import { authMiddleware, requireRole } from '@middleware/auth';
 import { validate } from '@middleware/validation';
 

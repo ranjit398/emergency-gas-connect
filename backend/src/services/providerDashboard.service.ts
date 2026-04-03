@@ -44,7 +44,7 @@ export async function getProviderDashboardStats(userId: string) {
   const provider = await Provider.findOne({ userId });
   if (!provider) throw new NotFoundError('Provider profile not found');
 
-  const pId = new mongoose.Types.ObjectId(provider._id as string);
+  const pId = new mongoose.Types.ObjectId(provider._id.toString());
   const [lng, lat] = provider.location?.coordinates ?? [0, 0];
 
   const [
@@ -180,7 +180,7 @@ export async function getProviderRequests(userId: string, page = 1, limit = 20, 
   const provider = await Provider.findOne({ userId });
   if (!provider) throw new NotFoundError('Provider not found');
 
-  const pId = new mongoose.Types.ObjectId(provider._id as string);
+  const pId = new mongoose.Types.ObjectId(provider._id.toString());
   const match: any = { providerId: pId };
   if (statusFilter && statusFilter !== 'all') match.status = statusFilter;
 
@@ -234,7 +234,7 @@ export async function getProviderHelpers(userId: string) {
   const provider = await Provider.findOne({ userId });
   if (!provider) throw new NotFoundError('Provider not found');
 
-  const pId = new mongoose.Types.ObjectId(provider._id as string);
+  const pId = new mongoose.Types.ObjectId(provider._id.toString());
 
   // Find all unique helpers who have worked on this provider's requests
   const helperIds = await EmergencyRequest.distinct('helperId', {
@@ -398,7 +398,7 @@ export async function getActivityFeed(userId: string, limit = 20) {
   const provider = await Provider.findOne({ userId });
   if (!provider) throw new NotFoundError('Provider not found');
 
-  const pId = new mongoose.Types.ObjectId(provider._id as string);
+  const pId = new mongoose.Types.ObjectId(provider._id.toString());
 
   const recent = await EmergencyRequest.aggregate([
     { $match: { providerId: pId } },
@@ -469,7 +469,7 @@ export async function getBusinessInsights(userId: string) {
   const provider = await Provider.findOne({ userId });
   if (!provider) throw new NotFoundError('Provider not found');
 
-  const pId = new mongoose.Types.ObjectId(provider._id as string);
+  const pId = new mongoose.Types.ObjectId(provider._id.toString());
 
   const [
     completedTotal,

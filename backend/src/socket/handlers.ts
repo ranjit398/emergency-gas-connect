@@ -16,7 +16,7 @@ interface AuthSocket extends Socket {
 
 export type ActivityEventType =
   | 'NEW_REQUEST' | 'REQUEST_ACCEPTED' | 'REQUEST_COMPLETED'
-  | 'REQUEST_CANCELLED' | 'HELPER_AVAILABLE' | 'NEW_MESSAGE' | 'PROVIDER_JOINED';
+  | 'REQUEST_CANCELLED' | 'REQUEST_REASSIGNED' | 'HELPER_AVAILABLE' | 'NEW_MESSAGE' | 'PROVIDER_JOINED';
 
 export interface ActivityEvent {
   type: ActivityEventType; message: string;

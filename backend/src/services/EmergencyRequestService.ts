@@ -6,7 +6,7 @@ import User from '@models/User';
 import { NotFoundError, ValidationError } from '@middleware/errorHandler';
 import { calculatePriorityScore, getPriorityLevel } from '@services/priority.service';
 import { broadcastActivity } from '@socket/handlers';
-import { emitDashboardUpdate } from '@socket/dashboard.handler';
+import { emitDashboardEvent, pushDashboardUpdate } from '@socket/dashboard.handler';
 import { deductInventoryOnComplete } from '@services/providerDashboard.service';
 import logger from '@utils/logger';
 
