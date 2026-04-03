@@ -1,169 +1,72 @@
-﻿// backend/src/controllers/ProviderDashboardController.ts
+﻿// backend/src/controllers/providerDashboard.controller.ts
 
 import { Request, Response } from 'express';
-import { success } from '@utils/response';
-import ProviderDashboardService from '@services/ProviderDashboardService';
-import providerDashboardService from '@services/providerDashboard.service';
-import ProviderService from '@services/ProviderService';
+import { body } from 'express-validator';
 import { asyncHandler } from '@middleware/index';
+import { success, paginated } from '@utils/response';
+import {
+  getProviderDashboardStats,
+  getProviderRequests,
+  getProviderHelpers,
+  getProviderInventory,
+  updateProviderInventory,
+  getActivityFeed,
+  getBusinessInsights,
+} from '@services/providerDashboard.service';
 
 export class ProviderDashboardController {
 
+  // GET /api/v1/provider/dashboard
   getDashboard = asyncHandler(async (req: Request, res: Response) => {
-    const provider = await ProviderService.getProviderByUserId(req.userId!);
-    const stats = await ProviderDashboardService.getDashboardStats(provider.id);
-    res.json(success(stats, 'Dashboard loaded'));
+    const data = await getProviderDashboardStats(req.userId!);
+    res.json(success(data, 'Dashboard loaded'));
   });
 
-  // NEW — 7-day time series for charts
-  getTimeSeries = asyncHandler(async (req: Request, res: Response) => {
-    const provider = await ProviderService.getProviderByUserId(req.userId!);
-    const data = await ProviderDashboardService.getTimeSeries(provider.id);
-    res.json(success(data, '7-day time series'));
-  });
-
-  getPendingOrders = asyncHandler(async (req: Request, res: Response) => {
-    const provider = await ProviderService.getProviderByUserId(req.userId!);
-    const orders = await ProviderDashboardService.getPendingOrders(provider.id);
-    res.json(success({ orders, count: orders.length }, `${orders.length} active orders`));
-  });
-
-  markOrderReady = asyncHandler(async (req: Request, res: Response) => {
-    const provider = await ProviderService.getProviderByUserId(req.userId!);
-    const result = await ProviderDashboardService.markOrderReady(provider.id, req.params.requestId);
-    res.json(success(result, 'Order marked as ready'));
-  });
-
-  markOrderCollected = asyncHandler(async (req: Request, res: Response) => {
-    const provider = await ProviderService.getProviderByUserId(req.userId!);
-    const result = await ProviderDashboardService.markOrderCollected(provider.id, req.params.requestId);
-    res.json(success(result, 'Inventory updated'));
-  });
-
-  getNearbyRequests = asyncHandler(async (req: Request, res: Response) => {
-    const provider = await ProviderService.getProviderByUserId(req.userId!);
-    const maxDistance = parseInt(req.query.maxDistance as string) || 5000;
-    const requests = await ProviderDashboardService.getNearbyRequests(provider.id, maxDistance);
-    res.json(success({ requests, count: requests.length }, `${requests.length} nearby requests`));
-  });
-
-  fulfillRequestDirectly = asyncHandler(async (req: Request, res: Response) => {
-    const provider = await ProviderService.getProviderByUserId(req.userId!);
-    const result = await ProviderDashboardService.fulfillRequestDirectly(provider.id, req.params.requestId);
-    res.json(success(result, 'Request fulfilled directly'));
-  });
-
-  updateInventory = asyncHandler(async (req: Request, res: Response) => {
-    const provider = await ProviderService.getProviderByUserId(req.userId!);
-    const { updates } = req.body;
-    if (!updates || !Array.isArray(updates)) {
-      return res.status(400).json({ success: false, error: { message: 'updates array is required' } });
-    }
-    const result = await ProviderDashboardService.updateInventory(provider.id, updates);
-    res.json(success(result, 'Inventory updated'));
-  });
-
-  getMetrics = asyncHandler(async (req: Request, res: Response) => {
-    const provider = await ProviderService.getProviderByUserId(req.userId!);
-    const metrics = await ProviderDashboardService.getPerformanceMetrics(provider.id);
-    res.json(success(metrics, 'Performance metrics'));
-  });
-
-  // ════════════════════════════════════════════════════════════════════════════════════
-  // NEW ENDPOINTS - Provider Dashboard Enhancement
-  // ════════════════════════════════════════════════════════════════════════════════════
-
-  /**
-   * GET /api/v1/provider-dashboard/stats
-   * Get comprehensive dashboard statistics
-   */
-  getDashboardStats = asyncHandler(async (req: Request, res: Response) => {
-    const provider = await ProviderService.getProviderByUserId(req.userId!);
-    const stats = await providerDashboardService.getDashboardStats(provider.id.toString());
-    res.json(success(stats, 'Dashboard statistics loaded'));
-  });
-
-  /**
-   * GET /api/v1/provider-dashboard/requests
-   * Get all requests with pagination and filtering
-   */
+  // GET /api/v1/provider/requests?page=1&limit=20&status=all
   getRequests = asyncHandler(async (req: Request, res: Response) => {
-    const provider = await ProviderService.getProviderByUserId(req.userId!);
     const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 20;
+    const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
     const status = req.query.status as string | undefined;
-
-    const result = await providerDashboardService.getProviderRequests(
-      provider.id.toString(),
-      page,
-      limit,
-      status
-    );
-
-    res.json(success({ requests: result.requests, pagination: result.pagination }, 'Requests loaded'));
+    const result = await getProviderRequests(req.userId!, page, limit, status);
+    res.json({ success: true, ...result });
   });
 
-  /**
-   * GET /api/v1/provider-dashboard/helpers
-   * Get helper profiles and performance
-   */
+  // GET /api/v1/provider/helpers
   getHelpers = asyncHandler(async (req: Request, res: Response) => {
-    const provider = await ProviderService.getProviderByUserId(req.userId!);
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 20;
-
-    const result = await providerDashboardService.getProviderHelpers(
-      provider.id.toString(),
-      page,
-      limit
-    );
-
-    res.json(success({ helpers: result.helpers, pagination: result.pagination }, 'Helpers loaded'));
+    const data = await getProviderHelpers(req.userId!);
+    res.json(success(data, 'Helpers loaded'));
   });
 
-  /**
-   * GET /api/v1/provider-dashboard/inventory
-   * Get current inventory status
-   */
+  // GET /api/v1/provider/inventory
   getInventory = asyncHandler(async (req: Request, res: Response) => {
-    const provider = await ProviderService.getProviderByUserId(req.userId!);
-    const inventory = await providerDashboardService.getInventory(provider.id.toString());
-    res.json(success(inventory, 'Inventory loaded'));
+    const data = await getProviderInventory(req.userId!);
+    res.json(success(data));
   });
 
-  /**
-   * PUT /api/v1/provider-dashboard/inventory
-   * Update inventory stock
-   */
-  updateInventoryStock = asyncHandler(async (req: Request, res: Response) => {
-    const provider = await ProviderService.getProviderByUserId(req.userId!);
+  // PUT /api/v1/provider/inventory
+  updateInventory = asyncHandler(async (req: Request, res: Response) => {
     const { lpgStock, cngStock } = req.body;
-
-    const updated = await providerDashboardService.updateInventory(
-      provider.id.toString(),
-      lpgStock,
-      cngStock
-    );
-
-    res.json(success(
-      {
-        lpgStock: updated.lpgStock,
-        cngStock: updated.cngStock,
-        totalStock: (updated.lpgStock || 0) + (updated.cngStock || 0),
-      },
-      'Inventory updated'
-    ));
+    const data = await updateProviderInventory(req.userId!, { lpgStock, cngStock });
+    res.json(success(data, 'Inventory updated'));
   });
 
-  /**
-   * GET /api/v1/provider-dashboard/analytics
-   * Get detailed provider analytics (30-day)
-   */
-  getAnalytics = asyncHandler(async (req: Request, res: Response) => {
-    const provider = await ProviderService.getProviderByUserId(req.userId!);
-    const analytics = await providerDashboardService.getAnalytics(provider.id.toString());
-    res.json(success(analytics, 'Analytics loaded'));
+  // GET /api/v1/provider/activity
+  getActivity = asyncHandler(async (req: Request, res: Response) => {
+    const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
+    const data = await getActivityFeed(req.userId!, limit);
+    res.json(success(data));
+  });
+
+  // GET /api/v1/provider/insights
+  getInsights = asyncHandler(async (req: Request, res: Response) => {
+    const data = await getBusinessInsights(req.userId!);
+    res.json(success(data));
   });
 }
+
+export const updateInventoryValidation = [
+  body('lpgStock').optional().isInt({ min: 0 }).withMessage('LPG stock must be 0 or more'),
+  body('cngStock').optional().isInt({ min: 0 }).withMessage('CNG stock must be 0 or more'),
+];
 
 export default new ProviderDashboardController();

@@ -192,13 +192,14 @@ v1.use(apiLimiter);
 v1.use('/auth', authLimiter, authRoutes);
 
 // Existing routes
-v1.use('/profile',       profileRoutes);
-v1.use('/requests',      requestRoutes);
-v1.use('/providers',     providerRoutes);
-v1.use('/provider-dashboard', providerDashboardRoutes);
-v1.use('/messages',      messageRoutes);
-v1.use('/ratings',       ratingRoutes);
-v1.use('/notifications', notificationRoutes);
+v1.use('/profile',            profileRoutes);
+v1.use('/requests',           requestRoutes);
+v1.use('/providers',          providerRoutes);
+v1.use('/provider-dashboard', providerDashboardRoutes);  // ← legacy path (backward compatibility)
+v1.use('/provider',           providerDashboardRoutes);  // ← new path
+v1.use('/messages',           messageRoutes);
+v1.use('/ratings',            ratingRoutes);
+v1.use('/notifications',      notificationRoutes);
 v1.use('/match', matchRoutes);
 v1.use('/live', liveRoutes);
 

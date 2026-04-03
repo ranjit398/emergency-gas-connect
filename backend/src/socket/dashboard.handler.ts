@@ -1,188 +1,82 @@
 ﻿// backend/src/socket/dashboard.handler.ts
-// Socket.IO handlers for real-time dashboard updates
-// Emits events when requests are created, updated, or helper status changes
+// NEW — Handles provider room subscriptions + pushes live dashboard updates
+// Call registerDashboardHandlers(io, socket) from main handlers.ts
 
-import { Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
+import { getProviderDashboardStats } from '@services/providerDashboard.service';
+import Provider from '@models/Provider';
 import logger from '@utils/logger';
 
-/**
- * Emit dashboard update to provider-specific room
- * Called when request status changes
- */
-export const emitDashboardUpdate = (
-  io: Server,
-  event: {
-    type: 'REQUEST_CREATED' | 'REQUEST_ACCEPTED' | 'REQUEST_COMPLETED' | 'REQUEST_CANCELLED' | 'REQUEST_REASSIGNED';
-    providerId: string;
-    requestId: string;
-    helperId?: string;
-    status?: string;
-    data?: Record<string, any>;
-  }
-) => {
+// ── Push a full dashboard snapshot to a provider room ────────────────────────
+export async function pushDashboardUpdate(io: Server, userId: string) {
   try {
-    // Emit to provider-specific room
-    io.to(`provider:${event.providerId}`).emit('dashboard:update', {
-      type: event.type,
-      providerId: event.providerId,
-      requestId: event.requestId,
-      helperId: event.helperId,
-      status: event.status,
-      timestamp: new Date().toISOString(),
-      data: event.data,
-    });
+    const provider = await Provider.findOne({ userId });
+    if (!provider) return;
+    const providerId = provider._id.toString();
 
-    // Also broadcast to all connected providers
-    io.to('providers').emit('dashboard:update', {
-      type: event.type,
-      providerId: event.providerId,
-      requestId: event.requestId,
-      helperId: event.helperId,
-      status: event.status,
-      timestamp: new Date().toISOString(),
-      data: event.data,
+    const stats = await getProviderDashboardStats(userId);
+    io.to(`provider:${providerId}`).emit('dashboard_update', {
+      type: 'FULL_REFRESH',
+      data: stats,
+      timestamp: new Date(),
     });
-
-    logger.info(`[Dashboard] Emitted ${event.type} to provider ${event.providerId}`);
-  } catch (error) {
-    logger.error('[Dashboard] Failed to emit update:', error);
+  } catch (err) {
+    logger.error('[Dashboard Socket] pushDashboardUpdate error:', err);
   }
-};
+}
 
-/**
- * Emit request update to specific provider and room
- */
-export const emitRequestUpdate = (
+// ── Emit a lightweight event (no DB refetch needed) ───────────────────────────
+export function emitDashboardEvent(
   io: Server,
   providerId: string,
-  requestId: string,
-  update: Record<string, any>
-) => {
-  try {
-    // Emit to provider-specific room
-    io.to(`provider:${providerId}`).emit('request:updated', {
-      requestId,
-      ...update,
-      timestamp: new Date().toISOString(),
-    });
+  type: string,
+  payload: Record<string, any>
+) {
+  io.to(`provider:${providerId}`).emit('dashboard_update', {
+    type,
+    ...payload,
+    timestamp: new Date(),
+  });
+}
 
-    // Also emit to request room for all listeners
-    io.to(`request:${requestId}`).emit('request:updated', {
-      requestId,
-      ...update,
-      timestamp: new Date().toISOString(),
-    });
+// ── Register per-socket handlers ─────────────────────────────────────────────
+export function registerDashboardHandlers(io: Server, socket: any) {
+  const userId = socket.userId as string;
+  if (!userId || socket.userRole !== 'provider') return;
 
-    logger.info(`[Dashboard] Emitted request update for ${requestId} to provider ${providerId}`);
-  } catch (error) {
-    logger.error('[Dashboard] Failed to emit request update:', error);
-  }
-};
+  // Provider joins their own room on connect
+  Provider.findOne({ userId })
+    .then((provider) => {
+      if (!provider) return;
+      const providerId = provider._id.toString();
+      socket.join(`provider:${providerId}`);
+      socket.emit('provider:room_joined', { providerId });
+      logger.debug(`[Dashboard] Provider ${userId} joined room provider:${providerId}`);
+    })
+    .catch(() => {});
 
-/**
- * Emit helper availability change to provider
- */
-export const emitHelperUpdate = (
-  io: Server,
-  providerId: string,
-  helperId: string,
-  isAvailable: boolean
-) => {
-  try {
-    // Emit to provider-specific room
-    io.to(`provider:${providerId}`).emit('helper:updated', {
-      providerId,
-      helperId,
-      isAvailable,
-      timestamp: new Date().toISOString(),
-    });
+  // Manual subscription (for when client explicitly wants to subscribe)
+  socket.on('provider:subscribe', async (providerId: string) => {
+    socket.join(`provider:${providerId}`);
+    socket.emit('provider:subscribed', { providerId });
+    // Send immediate snapshot
+    try {
+      const stats = await getProviderDashboardStats(userId);
+      socket.emit('dashboard_update', { type: 'FULL_REFRESH', data: stats, timestamp: new Date() });
+    } catch {}
+  });
 
-    // Also broadcast to all providers
-    io.to('providers').emit('helper:updated', {
-      providerId,
-      helperId,
-      isAvailable,
-      timestamp: new Date().toISOString(),
-    });
+  socket.on('provider:unsubscribe', (providerId: string) => {
+    socket.leave(`provider:${providerId}`);
+  });
 
-    logger.info(`[Dashboard] Emitted helper update: ${helperId} -> ${isAvailable} for provider ${providerId}`);
-  } catch (error) {
-    logger.error('[Dashboard] Failed to emit helper update:', error);
-  }
-};
-
-/**
- * Notify provider of new nearby request
- */
-export const notifyProviderOfNearbyRequest = (
-  io: Server,
-  providerId: string,
-  requestData: Record<string, any>
-) => {
-  try {
-    io.to(`provider:${providerId}`).emit('nearby_request_alert', {
-      ...requestData,
-      timestamp: new Date().toISOString(),
-    });
-
-    logger.info(`[Dashboard] Notified provider ${providerId} of nearby request`);
-  } catch (error) {
-    logger.error('[Dashboard] Failed to notify provider:', error);
-  }
-};
-
-/**
- * Emit inventory update notification
- */
-export const emitInventoryUpdate = (
-  io: Server,
-  providerId: string,
-  inventory: { lpgStock: number; cngStock: number }
-) => {
-  try {
-    io.to(`provider:${providerId}`).emit('inventory_updated', {
-      providerId,
-      ...inventory,
-      totalStock: inventory.lpgStock + inventory.cngStock,
-      timestamp: new Date().toISOString(),
-    });
-
-    logger.info(`[Dashboard] Emitted inventory update for provider ${providerId}`);
-  } catch (error) {
-    logger.error('[Dashboard] Failed to emit inventory update:', error);
-  }
-};
-
-/**
- * Notify provider to refresh stats
- */
-export const emitStatsRefresh = (io: Server, providerId: string) => {
-  try {
-    io.to(`provider:${providerId}`).emit('stats_refresh', {
-      timestamp: new Date().toISOString(),
-    });
-
-    logger.info(`[Dashboard] Emitted stats refresh for provider ${providerId}`);
-  } catch (error) {
-    logger.error('[Dashboard] Failed to emit stats refresh:', error);
-  }
-};
-
-/**
- * Register dashboard event listeners
- */
-export const registerDashboardHandlers = (io: Server, socket: any): void => {
-  if (socket.userRole === 'provider' && socket.userId) {
-    socket.join(`provider:${socket.userId}`);
-    logger.info(`[Dashboard] Provider ${socket.userId} joined dashboard room`);
-
-    // Listen for dashboard refresh requests
-    socket.on('dashboard:refresh', () => {
-      socket.emit('dashboard:refresh', { acknowledged: true });
-    });
-
-    socket.on('disconnect', () => {
-      logger.info(`[Dashboard] Provider ${socket.userId} disconnected`);
-    });
-  }
-};
+  // Client can request a manual refresh
+  socket.on('dashboard:refresh', async () => {
+    try {
+      const stats = await getProviderDashboardStats(userId);
+      socket.emit('dashboard_update', { type: 'FULL_REFRESH', data: stats, timestamp: new Date() });
+    } catch (err) {
+      socket.emit('dashboard_update', { type: 'ERROR', error: 'Refresh failed' });
+    }
+  });
+}

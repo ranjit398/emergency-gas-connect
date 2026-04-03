@@ -7,6 +7,7 @@ import { NotFoundError, ValidationError } from '@middleware/errorHandler';
 import { calculatePriorityScore, getPriorityLevel } from '@services/priority.service';
 import { broadcastActivity } from '@socket/handlers';
 import { emitDashboardUpdate } from '@socket/dashboard.handler';
+import { deductInventoryOnComplete } from '@services/providerDashboard.service';
 import logger from '@utils/logger';
 
 let _io: SocketServer | null = null;
@@ -305,6 +306,20 @@ export class EmergencyRequestService {
         { userId: request.helperId },
         { $inc: { completedRequests: 1 } }
       );
+    }
+
+    // ── Auto-deduct inventory when request completes ────────────────────────
+    if (request.providerId) {
+      try {
+        await deductInventoryOnComplete(
+          request.providerId.toString(),
+          request.cylinderType as 'LPG' | 'CNG',
+          request.quantity ?? 1
+        );
+      } catch (err) {
+        logger.warn(`[Inventory] Failed to deduct for request ${requestId}:`, err);
+        // Don't throw - allow request to complete even if inventory fails
+      }
     }
 
     const full = await this.getRequest(requestId);
