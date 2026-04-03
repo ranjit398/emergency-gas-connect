@@ -78,20 +78,12 @@ export const acceptRequest = async (
 
 
     if (request.providerId) {
-      emitDashboardUpdate(io, {
-        type: 'REQUEST_ACCEPTED',
-        providerId: request.providerId.toString(),
+      emitDashboardEvent(io, request.providerId.toString(), 'REQUEST_ACCEPTED', {
         requestId: request.id.toString(),
         helperId,
         status: 'accepted',
-      });
-
-      emitRequestUpdate(io, request.providerId.toString(), request.id.toString(), {
-        status: 'accepted',
-        helperId,
         acceptedAt: request.acceptedAt,
       });
-    }
   }
 
   logger.info(`Request ${requestId} accepted by helper ${helperId}`);
@@ -141,7 +133,8 @@ export const markInProgress = async (
         status: 'in_progress',
       });
 
-      emitRequestUpdate(io, request.providerId.toString(), request.id.toString(), {
+      emitDashboardEvent(io, request.providerId.toString(), 'REQUEST_IN_PROGRESS', {
+        requestId: request.id.toString(),
         status: 'in_progress',
         inProgressAt: request.inProgressAt,
       });
@@ -196,15 +189,9 @@ export const completeRequest = async (
     });
 
     if (request.providerId) {
-      emitDashboardUpdate(io, {
-        type: 'REQUEST_COMPLETED',
-        providerId: request.providerId.toString(),
+      emitDashboardEvent(io, request.providerId.toString(), 'REQUEST_COMPLETED', {
         requestId: request.id.toString(),
         helperId: request.helperId.toString(),
-        status: 'completed',
-      });
-
-      emitRequestUpdate(io, request.providerId.toString(), request.id.toString(), {
         status: 'completed',
         completedAt: request.completedAt,
       });
@@ -250,14 +237,8 @@ export const cancelRequest = async (
     }
 
     if (request.providerId) {
-      emitDashboardUpdate(io, {
-        type: 'REQUEST_CANCELLED',
-        providerId: request.providerId.toString(),
+      emitDashboardEvent(io, request.providerId.toString(), 'REQUEST_CANCELLED', {
         requestId: request.id.toString(),
-        status: 'cancelled',
-      });
-
-      emitRequestUpdate(io, request.providerId.toString(), request.id.toString(), {
         status: 'cancelled',
       });
     }

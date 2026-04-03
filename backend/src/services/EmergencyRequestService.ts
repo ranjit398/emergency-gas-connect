@@ -159,16 +159,12 @@ export class EmergencyRequestService {
       _io.to('helpers').emit('request:new', full);
       
       if (full.providerId) {
-        emitDashboardUpdate(_io, {
-          type: 'REQUEST_CREATED',
-          providerId: full.providerId.toString(),
+        emitDashboardEvent(_io, full.providerId.toString(), 'REQUEST_CREATED', {
           requestId: full.id.toString(),
           status: 'pending',
-          data: {
-            cylinderType: full.cylinderType,
-            address: full.address,
-            priorityLevel: full.priorityLevel,
-          },
+          cylinderType: full.cylinderType,
+          address: full.address,
+          priorityLevel: full.priorityLevel,
         });
       }
 
