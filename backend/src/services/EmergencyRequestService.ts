@@ -8,6 +8,7 @@ import { calculatePriorityScore, getPriorityLevel } from '@services/priority.ser
 import { broadcastActivity } from '@socket/handlers';
 import { emitDashboardEvent, pushDashboardUpdate } from '@socket/dashboard.handler';
 import { deductInventoryOnComplete } from '@services/providerDashboard.service';
+import Provider from '@models/Provider';
 import logger from '@utils/logger';
 
 let _io: SocketServer | null = null;
@@ -252,6 +253,28 @@ export class EmergencyRequestService {
     request.helperId  = helperId as any;
     request.status    = 'accepted' as any;
     request.assignedAt = acceptedAt;
+
+    // ✅ KEY FIX: find nearest provider and link it so provider dashboard
+    // queries (which filter by providerId) actually return this request
+    if (!request.providerId) {
+      try {
+        const [lng, lat] = request.location.coordinates;
+        const nearestProvider = await Provider.findOne({
+          location: {
+            $near: {
+              $geometry: { type: 'Point', coordinates: [lng, lat] },
+              $maxDistance: 10000, // 10km
+            },
+          },
+        });
+        if (nearestProvider) {
+          request.providerId = nearestProvider._id as any;
+        }
+      } catch (e) {
+        logger.warn('[Request] Could not set providerId on accept:', e);
+      }
+    }
+
     await request.save();
 
     // Update helper response time
