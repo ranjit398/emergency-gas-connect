@@ -2,17 +2,37 @@
 
 dotenv.config();
 
+// ✅ CRITICAL: Build CORS origins dynamically to handle Render deployment
+const buildCorsOrigins = (): string[] => {
+  // If CORS_ORIGIN is explicitly set, use it
+  if (process.env.CORS_ORIGIN) {
+    return process.env.CORS_ORIGIN.split(',').map(url => url.trim());
+  }
+
+  // Default development origins
+  const origins = [
+    'http://localhost:5173',
+    'http://localhost:3000',
+  ];
+
+  // In production, add Render frontend URL
+  if (process.env.NODE_ENV === 'production' || process.env.RENDER === 'true') {
+    origins.push('https://emergency-gas-frontend.onrender.com');
+    
+    // Also add RENDER_ORIGINAL_URL if available (for internal communication)
+    if (process.env.RENDER_ORIGINAL_URL) {
+      origins.push(process.env.RENDER_ORIGINAL_URL);
+    }
+  }
+
+  return origins;
+};
+
 export default {
   port: parseInt(process.env.PORT || '5000', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
   mongodbUri: process.env.MONGODB_URI || 'mongodb://localhost:27017/emergency-gas',
-  corsOrigin: process.env.CORS_ORIGIN
-    ? process.env.CORS_ORIGIN.split(',').map(url => url.trim())
-    : [
-        'http://localhost:5173',
-        'http://localhost:3000',
-        'https://emergency-gas-frontend.onrender.com',
-      ],
+  corsOrigin: buildCorsOrigins(),
   jwt: {
     secret: process.env.JWT_SECRET || 'default-secret-change-in-production',
     expiry: process.env.JWT_EXPIRY || '7d',

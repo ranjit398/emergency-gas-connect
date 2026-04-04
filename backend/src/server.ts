@@ -16,105 +16,96 @@ import errorHandler from '@middleware/errorHandler';
 import { apiLimiter, authLimiter } from '@middleware/rateLimiter';
 import { socketHandler } from '@socket/handlers';
 
-// Existing routes
-import authRoutes       from '@routes/auth';
-import profileRoutes    from '@routes/profile';
-import requestRoutes    from '@routes/requests';
-import providerRoutes   from '@routes/providers';
+// Routes
+import authRoutes             from '@routes/auth';
+import profileRoutes          from '@routes/profile';
+import requestRoutes          from '@routes/requests';
+import providerRoutes         from '@routes/providers';
 import providerDashboardRoutes from '@routes/provider-dashboard';
-import messageRoutes    from '@routes/messages';
-import ratingRoutes     from '@routes/ratings';
-import notificationRoutes from '@routes/notifications';
+import messageRoutes          from '@routes/messages';
+import ratingRoutes           from '@routes/ratings';
+import notificationRoutes     from '@routes/notifications';
+import matchRoutes            from '@routes/smart/match.routes';
+import liveRoutes             from '@routes/live';
 
-// Smart matching routes
-import matchRoutes from '@routes/smart/match.routes';
-
-// ── NEW: Live data routes ───────────────────────────────────────────────────
-import liveRoutes from '@routes/live';
-
-// ── NEW: Inject io into request service ───────────────────────────────────
-import { setSocketIO } from '@services/EmergencyRequestService';
-import { setLifecycleIO } from '@services/requestLifecycle.service';
+// Service IO injection
+import { setSocketIO }       from '@services/EmergencyRequestService';
+import { setLifecycleIO }    from '@services/requestLifecycle.service';
 import { setReassignmentIO } from '@services/reassignment.service';
 
-// ─────────────────────────────────────────────────────────────────────────────
-
+// ── App setup ─────────────────────────────────────────────────────────────────
 const app: Express = express();
-const httpServer = createServer(app);
+const httpServer   = createServer(app);
 
-// ── CORS origins ──────────────────────────────────────────────────────────────
-const allowedOrigins = Array.isArray(config.corsOrigin)
-  ? config.corsOrigin
-  : [config.corsOrigin];
+// ── CORS: single source of truth ─────────────────────────────────────────────
+const allowedOrigins: string[] = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'https://emergency-gas-frontend.onrender.com',
+];
 
-// ── Socket.IO — MUST match Express CORS exactly ───────────────────────────────
+// Add any extra origins from env
+if (process.env.CORS_ORIGIN) {
+  process.env.CORS_ORIGIN.split(',').forEach(o => {
+    const trimmed = o.trim();
+    if (trimmed && !allowedOrigins.includes(trimmed)) allowedOrigins.push(trimmed);
+  });
+}
+if (process.env.FRONTEND_URL) {
+  const url = process.env.FRONTEND_URL.trim();
+  if (url && !allowedOrigins.includes(url)) allowedOrigins.push(url);
+}
+
+logger.info('[CORS] Allowed origins:', allowedOrigins);
+
+// ── Socket.IO ─────────────────────────────────────────────────────────────────
 const io = new SocketIOServer(httpServer, {
   cors: {
-    // ✅ CRITICAL: Use a function to handle CORS for dynamic origins
-    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-      // Allow requests with no origin or matching allowed origins
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        logger.warn(`[Socket.IO] CORS rejected for origin: ${origin}`);
-        callback(new Error(`CORS not allowed: ${origin}`), false);
-      }
-    },
-    methods: ['GET', 'POST', 'OPTIONS'],
+    origin: allowedOrigins,
+    methods: ['GET', 'POST'],
     credentials: true,
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    optionsSuccessStatus: 200,
+    allowedHeaders: ['Authorization', 'Content-Type'],
   },
-  transports: ['polling'],   // ✅ polling only — match frontend for Render free tier
+  // polling only — Render free tier does not support WebSocket upgrades
+  transports: ['polling'],
+  allowUpgrades: false,
   pingTimeout: 60000,
   pingInterval: 25000,
-  allowUpgrades: false,       // ✅ never attempt WebSocket upgrade
+  cookie: false,
 });
 
-logger.info('[Socket.IO] Initialized', {
-  allowedOrigins: allowedOrigins,
-  transports: io.engine.opts.transports,
-  corsEnabled: true,
-  environment: config.nodeEnv,
-});
+logger.info('[Socket.IO] Initialized with transports: polling only');
 
-// ── Inject io into service layer (before any routes handle requests) ───────
+// Inject io into services
 setSocketIO(io);
 setLifecycleIO(io);
 setReassignmentIO(io);
 
-// ── Security middleware ────────────────────────────────────────────────────
-// ✅ Configure helmet to allow Socket.IO's eval (required for some transports)
+// ── Security middleware ────────────────────────────────────────────────────────
 app.use(helmet({
   crossOriginEmbedderPolicy: false,
-  // ✅ CSP: Allow eval for Socket.IO client functionality
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-      scriptSrc: ["'self'", "'unsafe-eval'", "'unsafe-inline'"], // ✅ unsafe-eval for Socket.IO
-      fontSrc: ["'self'", "https://fonts.gstatic.com", "https://fonts.googleapis.com"],
-      connectSrc: [
-        "'self'",
-        "https://emergency-gas-backend.onrender.com",
-        "wss://emergency-gas-backend.onrender.com", // ✅ WebSocket
-        "https://emergency-gas-frontend.onrender.com",
-      ],
-      imgSrc: ["'self'", "data:", "https:"],
-    },
-  },
+  contentSecurityPolicy: false, // disable CSP to avoid blocking Socket.IO
 }));
 
 // ── Express CORS ──────────────────────────────────────────────────────────────
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, curl, Postman)
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error(`CORS blocked: ${origin}`));
+      logger.warn(`[CORS] Blocked origin: ${origin}`);
+      callback(null, false); // don't throw — just reject silently
     }
   },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 200,
+}));
+
+// Handle preflight for all routes
+app.options('*', cors({
+  origin: allowedOrigins,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -126,151 +117,90 @@ app.use(mongoSanitize());
 app.use(hpp());
 app.use(compression());
 app.use(requestLogger);
-
-// Make io accessible in controllers via req.app.get('io')
 app.set('io', io);
 
-// ── Socket handlers ────────────────────────────────────────────────────────
+// ── Socket handlers ────────────────────────────────────────────────────────────
 socketHandler(io);
 
-// ── Health check ──────────────────────────────────────────────────────────
+// ── Health check ──────────────────────────────────────────────────────────────
 app.get('/health', (_req: Request, res: Response) => {
   res.json({
     success: true,
     message: 'Server is running',
     timestamp: new Date().toISOString(),
     environment: config.nodeEnv,
-    features: ['priority-engine', 'smart-matching', 'live-activity', 'recommendations'],
+    socketIO: 'active',
+    allowedOrigins,
   });
 });
 
-// ── Favicon - prevents 404 errors ──────────────────────────────────────────
-app.get('/favicon.ico', (_req: Request, res: Response) => {
-  res.status(204).end();
-});
+app.get('/favicon.ico', (_req: Request, res: Response) => res.status(204).end());
 
-// ── API v1 routes ──────────────────────────────────────────────────────────
+// ── API v1 ────────────────────────────────────────────────────────────────────
 const v1 = express.Router();
-
 v1.use(apiLimiter);
-
-// Auth (stricter rate limit)
-v1.use('/auth', authLimiter, authRoutes);
-
-// Existing routes
+v1.use('/auth',               authLimiter, authRoutes);
 v1.use('/profile',            profileRoutes);
 v1.use('/requests',           requestRoutes);
 v1.use('/providers',          providerRoutes);
-v1.use('/provider-dashboard', providerDashboardRoutes);  // ← legacy path (backward compatibility)
-v1.use('/provider',           providerDashboardRoutes);  // ← new path
+v1.use('/provider-dashboard', providerDashboardRoutes);
+v1.use('/provider',           providerDashboardRoutes);
 v1.use('/messages',           messageRoutes);
 v1.use('/ratings',            ratingRoutes);
 v1.use('/notifications',      notificationRoutes);
-v1.use('/match', matchRoutes);
-v1.use('/live', liveRoutes);
-
+v1.use('/match',              matchRoutes);
+v1.use('/live',               liveRoutes);
 app.use('/api/v1', v1);
 
-// ── Socket.IO Info endpoint (debugging) ────────────────────────────────────
-app.get('/socket.io/info', (req: Request, res: Response) => {
-  console.log('[Socket.IO] Info endpoint hit');
-  res.json({
-    ok: true,
-    engines: io.engine.opts.transports,
-    origins: allowedOrigins,
-  });
-});
-
-// ── 404 (but NOT for socket.io - Socket.IO handles that) ────────────────────
+// ── 404 ────────────────────────────────────────────────────────────────────────
 app.use((req: Request, res: Response) => {
-  // Let Socket.IO handle its own paths
-  if (req.path.startsWith('/socket.io/')) {
-    console.log('[WARN] Express caught socket.io request - should be handled by Socket.IO:', req.path);
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-  
   res.status(404).json({
     success: false,
     error: { status: 404, message: 'Route not found', path: req.path },
   });
 });
 
-// ── Error handler ──────────────────────────────────────────────────────────
+// ── Error handler ──────────────────────────────────────────────────────────────
 app.use(errorHandler);
 
-// ── Start ──────────────────────────────────────────────────────────────────
+// ── Start ──────────────────────────────────────────────────────────────────────
 const startServer = async () => {
-  await connectDatabase();
-  const PORT = config.port;
-  
-  // Prevent MaxListenersExceededWarning
-  httpServer.setMaxListeners(50);
-  
-  // Set socket options for faster rebinding after restart
-  httpServer.on('connection', (socket) => {
-    socket.setNoDelay(true);
-  });
-  
-  // Enable SO_REUSEADDR to allow quick port reuse (Unix-like systems)
   try {
-    (httpServer as any).setsockopt?.(require('net').TCP_NODELAY, 1);
-  } catch (e) {
-    // Ignore if not available
-  }
-  
-  let retries = 0;
-  const maxRetries = 3;
-  
-  httpServer.once('error', (err: any) => {
-    if (err.code === 'EADDRINUSE' && retries < maxRetries) {
-      retries++;
-      logger.warn(`Port ${PORT} in use, retrying (${retries}/${maxRetries}) in 2 seconds...`);
-      setTimeout(() => {
-        httpServer.close();
-        setTimeout(startServer, 1000);
-      }, 2000);
-      return;
-    }
-    logger.error(`Failed to bind to port ${PORT}:`, err.message);
+    await connectDatabase();
+  } catch (err) {
+    logger.error('Database connection failed:', err);
     process.exit(1);
-  });
-  
+  }
+
+  const PORT = config.port || 5000;
+  httpServer.setMaxListeners(50);
+
   httpServer.listen(PORT, '0.0.0.0', () => {
-    logger.info(`✓ Server running on http://localhost:${PORT}`);
+    logger.info(`✓ Server running on port ${PORT}`);
     logger.info(`Environment: ${config.nodeEnv}`);
-    logger.info('Features: priority-engine | smart-matching | live-activity | geo-matching');
+  });
+
+  httpServer.on('error', (err: any) => {
+    logger.error('Server error:', err);
+    process.exit(1);
   });
 };
 
-// ── Graceful shutdown ──────────────────────────────────────────────────────
+// ── Graceful shutdown ──────────────────────────────────────────────────────────
 const gracefulShutdown = (signal: string) => {
-  logger.info(`${signal} received. Shutting down gracefully...`);
-  
-  // Close all connections first
-  if (typeof (httpServer as any).closeAllConnections === 'function') {
-    (httpServer as any).closeAllConnections?.();
-  }
-  
-  // Close socket.io connections
+  logger.info(`${signal} received. Shutting down...`);
   io.close();
-  
-  // Close HTTP server
   httpServer.close(() => {
-    logger.info('HTTP server closed');
+    logger.info('Server closed');
     process.exit(0);
   });
-  
-  // Force shutdown after timeout
-  setTimeout(() => { 
-    logger.error('Forced shutdown after 10s'); 
-    process.exit(1); 
-  }, 10000);
+  setTimeout(() => process.exit(1), 10000);
 };
 
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGINT',  () => gracefulShutdown('SIGINT'));
-process.on('unhandledRejection', (reason, promise) => {
-  logger.error('Unhandled Rejection:', { reason, promise });
+process.on('unhandledRejection', (reason) => {
+  logger.error('Unhandled Rejection:', reason);
 });
 process.on('uncaughtException', (error) => {
   logger.error('Uncaught Exception:', error);
