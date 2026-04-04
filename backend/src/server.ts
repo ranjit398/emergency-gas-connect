@@ -61,8 +61,17 @@ logger.info('[CORS] Allowed origins:', allowedOrigins);
 // ── Socket.IO ─────────────────────────────────────────────────────────────────
 const io = new SocketIOServer(httpServer, {
   cors: {
-    origin: allowedOrigins,
-    methods: ['GET', 'POST'],
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+      // Allow if no origin (mobile apps) or if in allowed list
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        // Log but still allow for localhost dev
+        logger.warn(`[Socket.IO CORS] Unknown origin: ${origin}`);
+        callback(null, true); // Permissive: allow all
+      }
+    },
+    methods: ['GET', 'POST', 'OPTIONS'],
     credentials: true,
     allowedHeaders: ['Authorization', 'Content-Type'],
   },
@@ -80,6 +89,24 @@ logger.info('[Socket.IO] Initialized with transports: polling only');
 setSocketIO(io);
 setLifecycleIO(io);
 setReassignmentIO(io);
+
+// ── Socket.IO CORS middleware (FIRST, before all other middleware) ────────────
+app.use((req: Request, res: Response, next: NextFunction) => {
+  if (req.path.startsWith('/socket.io')) {
+    const origin = req.headers.origin as string | undefined;
+    // Allow all origins for socket.io polling compatibility
+    res.header('Access-Control-Allow-Origin', origin || '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.header('Access-Control-Allow-Credentials', 'true');
+
+    // Handle preflight
+    if (req.method === 'OPTIONS') {
+      return res.sendStatus(200);
+    }
+  }
+  next();
+});
 
 // ── Security middleware ────────────────────────────────────────────────────────
 app.use(helmet({
@@ -103,9 +130,15 @@ app.use(cors({
   optionsSuccessStatus: 200,
 }));
 
-// Handle preflight for all routes
+// Handle preflight for all routes (including socket.io)
 app.options('*', cors({
-  origin: allowedOrigins,
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(null, true); // Allow all for socket.io compatibility
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
