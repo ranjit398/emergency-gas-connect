@@ -43,12 +43,9 @@ const app: Express = express();
 const httpServer = createServer(app);
 
 // ── CORS origins ──────────────────────────────────────────────────────────────
-const allowedOrigins = [
-  'http://localhost:5173',
-  'http://localhost:3000',
-  'https://emergency-gas-frontend.onrender.com',
-  ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []),
-];
+const allowedOrigins = Array.isArray(config.corsOrigin)
+  ? config.corsOrigin
+  : [config.corsOrigin];
 
 // ── Socket.IO — MUST match Express CORS exactly ───────────────────────────────
 const io = new SocketIOServer(httpServer, {
