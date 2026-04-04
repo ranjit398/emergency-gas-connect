@@ -50,10 +50,20 @@ const allowedOrigins = Array.isArray(config.corsOrigin)
 // ── Socket.IO — MUST match Express CORS exactly ───────────────────────────────
 const io = new SocketIOServer(httpServer, {
   cors: {
-    origin: allowedOrigins,
-    methods: ['GET', 'POST'],
+    // ✅ CRITICAL: Use a function to handle CORS for dynamic origins
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+      // Allow requests with no origin or matching allowed origins
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        logger.warn(`[Socket.IO] CORS rejected for origin: ${origin}`);
+        callback(new Error(`CORS not allowed: ${origin}`), false);
+      }
+    },
+    methods: ['GET', 'POST', 'OPTIONS'],
     credentials: true,
-    allowedHeaders: ['Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    optionsSuccessStatus: 200,
   },
   transports: ['polling'],   // ✅ polling only — match frontend for Render free tier
   pingTimeout: 60000,
@@ -62,8 +72,10 @@ const io = new SocketIOServer(httpServer, {
 });
 
 logger.info('[Socket.IO] Initialized', {
-  origins: allowedOrigins,
+  allowedOrigins: allowedOrigins,
   transports: io.engine.opts.transports,
+  corsEnabled: true,
+  environment: config.nodeEnv,
 });
 
 // ── Inject io into service layer (before any routes handle requests) ───────
