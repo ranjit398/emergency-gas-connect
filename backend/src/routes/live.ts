@@ -3,13 +3,13 @@
 import express, { Router } from 'express';
 import liveDataController from '@controllers/LiveDataController';
 import { authMiddleware } from '@middleware/auth';
-import { liveDataLimiter } from '@middleware/rateLimiter';
+import { apiLimiter } from '@middleware/rateLimiter';
 
 const router: Router = express.Router();
 
-// All live data routes require authentication and have lenient rate limiting
+// All live data routes require authentication
 router.use(authMiddleware);
-router.use(liveDataLimiter);
+router.use(apiLimiter);
 
 // Role-aware endpoint — returns data based on user's role
 router.get('/me', liveDataController.getMyLiveData);
