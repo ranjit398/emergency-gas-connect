@@ -99,12 +99,13 @@ export function useProviderDashboard(autoRefreshMs = 30_000) {
     setError(null);
 
     try {
+      // ✅ Reduce API calls: only fetch helpers/insights/activity on first load
       const [dashRes, helpersRes, reqRes, activityRes, insightsRes] = await Promise.allSettled([
-        providerApi.getDashboard(),
-        providerApi.getHelpers(),
-        providerApi.getRequests(requestPage, requestStatus),
-        providerApi.getActivity(),
-        providerApi.getInsights(),
+        providerApi.getDashboard(), // Always fetch dashboard (fast)
+        silent ? Promise.resolve({ data: { data: helpers } }) : providerApi.getHelpers(), // Skip on silent refresh
+        providerApi.getRequests(requestPage, requestStatus), // Always fetch requests (essential)
+        silent ? Promise.resolve({ data: { data: activity } }) : providerApi.getActivity(), // Skip on silent refresh
+        silent ? Promise.resolve({ data: { data: insights } }) : providerApi.getInsights(), // Skip on silent refresh
       ]);
 
       if (!mountedRef.current) return;

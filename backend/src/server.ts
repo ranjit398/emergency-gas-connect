@@ -55,9 +55,10 @@ const io = new SocketIOServer(httpServer, {
     credentials: true,
     allowedHeaders: ['Authorization'],
   },
-  transports: ['websocket', 'polling'],
+  transports: ['polling'],   // ✅ polling only — match frontend for Render free tier
   pingTimeout: 60000,
   pingInterval: 25000,
+  allowUpgrades: false,       // ✅ never attempt WebSocket upgrade
 });
 
 logger.info('[Socket.IO] Initialized', {

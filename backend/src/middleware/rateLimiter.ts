@@ -2,13 +2,17 @@
 
 // General API limiter
 export const apiLimiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10), // 15 min
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10),
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 500, // ✅ raised from 100 to accommodate provider dashboard polling
   standardHeaders: true,
   legacyHeaders: false,
   message: {
     success: false,
     error: { message: 'Too many requests, please try again later.' },
+  },
+  skip: (req) => {
+    // ✅ skip rate limiting for provider dashboard (it polls frequently)
+    return req.path.startsWith('/provider') || req.path.startsWith('/live');
   },
 });
 

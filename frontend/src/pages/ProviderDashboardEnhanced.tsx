@@ -222,7 +222,7 @@ export default function ProviderDashboardEnhanced() {
     loading, refreshing, error, lastUpdated,
     requestPage, setRequestPage, requestStatus, setRequestStatus,
     refresh, updateInventory,
-  } = useProviderDashboard(30_000);
+  } = useProviderDashboard(60_000); // ✅ 60s instead of 30s = half the API calls
 
   if (loading) return (
     <Box sx={{ minHeight: '100vh', background: '#0a0a0b', pt: 10 }}>
