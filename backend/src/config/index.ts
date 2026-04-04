@@ -2,21 +2,17 @@
 
 dotenv.config();
 
-const getDefaultCorsOrigin = () => {
-  const nodeEnv = process.env.NODE_ENV || 'development';
-  if (nodeEnv === 'production') {
-    // Production: include both localhost (for testing) and production URLs
-    return 'http://localhost:5173,https://emergency-gas-frontend.onrender.com,http://localhost:3000';
-  }
-  // Development
-  return 'http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173';
-};
-
 export default {
   port: parseInt(process.env.PORT || '5000', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
   mongodbUri: process.env.MONGODB_URI || 'mongodb://localhost:27017/emergency-gas',
-  corsOrigin: (process.env.CORS_ORIGIN || getDefaultCorsOrigin()).split(',').map(url => url.trim()),
+  corsOrigin: process.env.CORS_ORIGIN
+    ? process.env.CORS_ORIGIN.split(',').map(url => url.trim())
+    : [
+        'http://localhost:5173',
+        'http://localhost:3000',
+        'https://emergency-gas-frontend.onrender.com',
+      ],
   jwt: {
     secret: process.env.JWT_SECRET || 'default-secret-change-in-production',
     expiry: process.env.JWT_EXPIRY || '7d',

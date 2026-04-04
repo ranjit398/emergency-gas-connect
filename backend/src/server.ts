@@ -42,53 +42,31 @@ import { setReassignmentIO } from '@services/reassignment.service';
 const app: Express = express();
 const httpServer = createServer(app);
 
-// ── Socket.IO ─────────────────────────────────────────────────────────────
-const getCorsOrigins = (): string[] => {
-  const origins = [...config.corsOrigin]; // Copy array
-  const productionFrontend = 'https://emergency-gas-frontend.onrender.com';
-  
-  // Add production frontend if not already included
-  if (!origins.some(o => o.includes('emergency-gas-frontend.onrender.com'))) {
-    origins.push(productionFrontend);
-  }
-  
-  // For development, add common localhost variations
-  if (config.nodeEnv !== 'production') {
-    const devOrigins = [
-      'http://localhost:5173',
-      'http://localhost:3000',
-      'http://127.0.0.1:5173',
-      'http://127.0.0.1:3000',
-    ];
-    devOrigins.forEach(dev => {
-      if (!origins.includes(dev)) origins.push(dev);
-    });
-  }
-  
-  return origins;
-};
+// ── CORS origins ──────────────────────────────────────────────────────────────
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'https://emergency-gas-frontend.onrender.com',
+  ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []),
+];
 
+// ── Socket.IO — MUST match Express CORS exactly ───────────────────────────────
 const io = new SocketIOServer(httpServer, {
-  path: '/socket.io/',
-  serveClient: false,
-  // ✅ ENABLE BOTH TRANSPORTS: Frontend tries polling first, then upgrades to WebSocket
-  // This matches frontend config and works with Render's proxy architecture
-  transports: ['polling', 'websocket'],
   cors: {
-    origin: getCorsOrigins(), // Use function to get current origins
-    methods: ['GET', 'POST', 'OPTIONS'],
+    origin: allowedOrigins,
+    methods: ['GET', 'POST'],
     credentials: true,
-    maxAge: 86400, // 24 hours
+    allowedHeaders: ['Authorization'],
   },
-  pingTimeout: 120000,
+  transports: ['websocket', 'polling'],
+  pingTimeout: 60000,
   pingInterval: 25000,
-  allowUpgrades: true,
-  maxHttpBufferSize: 10 * 1024 * 1024,
 });
 
-// ✅ Log Socket.IO initialization
-console.log('[Socket.IO] Initialized with transports:', io.engine.opts.transports);
-console.log('[Socket.IO] CORS origins:', getCorsOrigins());
+logger.info('[Socket.IO] Initialized', {
+  origins: allowedOrigins,
+  transports: io.engine.opts.transports,
+});
 
 // ── Inject io into service layer (before any routes handle requests) ───────
 setSocketIO(io);
@@ -117,61 +95,20 @@ app.use(helmet({
   },
 }));
 
-// ── CORS headers and middleware (Socket.IO will add its own) ────────────────
-const corsOriginsList = getCorsOrigins();
-app.use((req: Request, res: Response, next: NextFunction) => {
-  const origin = req.headers.origin;
-  
-  // ✅ Set CORS headers for ALL requests including socket.io
-  if (origin) {
-    const allowed = corsOriginsList.some(allowed => {
-      const pattern = allowed.replace(/\*/g, '.*');
-      return new RegExp(pattern).test(origin);
-    });
-    
-    if (allowed) {
-      res.setHeader('Access-Control-Allow-Origin', origin);
-      res.setHeader('Access-Control-Allow-Credentials', 'true');
-      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-      res.setHeader('Access-Control-Max-Age', '86400');
-      res.setHeader('Vary', 'Origin');
-    }
-  }
-  
-  // ✅ Handle preflight OPTIONS requests
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(204); // 204 No Content
-  }
-  
-  next();
-});
-  
-// ── Express CORS middleware (for REST endpoints) ───────────────────────────
+// ── Express CORS ──────────────────────────────────────────────────────────────
 app.use(cors({
-  origin: config.corsOrigin,
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, Postman)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS blocked: ${origin}`));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
-
-// ─────────────────────────────────────────────────────────────────────────────
-// CRITICAL: Apply CORS headers to EVERYTHING including /socket.io/ polling
-// Socket.IO polling transport needs explicit CORS headers on all responses
-// ─────────────────────────────────────────────────────────────────────────────
-app.use((req: Request, res: Response, next: NextFunction) => {
-  const origins = getCorsOrigins();
-  const origin = req.headers.origin || '';
-  
-  // Check if origin is allowed
-  if (origins.some(o => origin.includes(o) || o === '*')) {
-    res.set('Access-Control-Allow-Origin', origin);
-    res.set('Access-Control-Allow-Credentials', 'true');
-    res.set('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
-    res.set('Access-Control-Allow-Headers', 'Content-Type,Authorization');
-  }
-  next();
-});
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
@@ -230,7 +167,7 @@ app.get('/socket.io/info', (req: Request, res: Response) => {
   res.json({
     ok: true,
     engines: io.engine.opts.transports,
-    origins: getCorsOrigins(),
+    origins: allowedOrigins,
   });
 });
 
