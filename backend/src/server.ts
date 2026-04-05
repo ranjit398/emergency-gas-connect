@@ -183,14 +183,19 @@ const startServer = async () => {
     console.log(`[Boot] HTTP server configured, PORT=${PORT}`);
     
     console.log('[Boot] Binding to port...');
-    httpServer.listen(PORT, '0.0.0.0', () => {
-      console.log(`[Boot] ✓ Listening on ${PORT}`);
+    await new Promise<void>((resolve, reject) => {
+      httpServer.listen(PORT, '0.0.0.0', () => {
+        console.log(`[Boot] ✓ Listening on ${PORT}`);
+        resolve();
+      });
+      
+      httpServer.on('error', (err: any) => {
+        console.error('[Boot] HTTP error:', err);
+        reject(err);
+      });
     });
-
-    httpServer.on('error', (err: any) => {
-      console.error('[Boot] HTTP error:', err);
-      process.exit(1);
-    });
+    
+    console.log('[Boot] ✓ Server fully initialized');
   } catch (err) {
     console.error('[Boot] FATAL ERROR:', err);
     process.exit(1);
