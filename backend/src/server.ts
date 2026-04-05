@@ -173,14 +173,18 @@ app.use(errorHandler);
 // ─────────────────────────────────────────────────────────────────────────────
 const startServer = async () => {
   try {
+    logger.info('[Boot] Connecting to MongoDB...');
     await connectDatabase();
-    logger.info('[Boot] MongoDB connected');
+    logger.info('[Boot] ✓ MongoDB connected');
 
+    logger.info('[Boot] Setting up HTTP server...');
     const PORT = Number(process.env.PORT) || 5000;
     httpServer.setMaxListeners(50);
+    logger.info(`[Boot] HTTP server configured, PORT=${PORT}`);
     
+    logger.info('[Boot] Binding to port...');
     httpServer.listen(PORT, '0.0.0.0', () => {
-      logger.info(`[Boot] Listening on port ${PORT}`);
+      logger.info(`[Boot] ✓ Listening on ${PORT}`);
     });
 
     httpServer.on('error', (err: any) => {
@@ -188,7 +192,7 @@ const startServer = async () => {
       process.exit(1);
     });
   } catch (err) {
-    logger.error('[Boot] Startup failed:', err);
+    logger.error('[Boot] FATAL ERROR:', err);
     process.exit(1);
   }
 };
@@ -198,6 +202,7 @@ process.on('SIGINT',  () => { io.close(); httpServer.close(() => process.exit(0)
 process.on('unhandledRejection', (r) => logger.error('UnhandledRejection:', r));
 process.on('uncaughtException',  (e) => { logger.error('UncaughtException:', e); process.exit(1); });
 
+logger.info('[Boot] Starting server...');
 startServer();
 export { io };
 export default httpServer;
