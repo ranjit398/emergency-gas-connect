@@ -146,9 +146,10 @@ app.get('/health', (_req, res) => {
       allowedOrigins: ALLOWED_ORIGINS,
       socket: 'polling-only',
     });
-  } catch (err) {
-    console.error('[Route] /health handler error:', err);
-    res.status(500).json({ error: err.toString() });
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err.message : String(err);
+    console.error('[Route] /health handler error:', error);
+    res.status(500).json({ error });
   }
 });
 
