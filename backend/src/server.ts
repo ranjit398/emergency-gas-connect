@@ -135,14 +135,21 @@ socketHandler(io);
 // ─────────────────────────────────────────────────────────────────────────────
 // Routes
 // ─────────────────────────────────────────────────────────────────────────────
+console.log('[Boot] Registering /health route...');
 app.get('/health', (_req, res) => {
-  res.json({
-    ok: true,
-    ts: new Date().toISOString(),
-    env: config.nodeEnv,
-    allowedOrigins: ALLOWED_ORIGINS,
-    socket: 'polling-only',
-  });
+  console.log('[Route] GET /health called');
+  try {
+    res.json({
+      ok: true,
+      ts: new Date().toISOString(),
+      env: config.nodeEnv,
+      allowedOrigins: ALLOWED_ORIGINS,
+      socket: 'polling-only',
+    });
+  } catch (err) {
+    console.error('[Route] /health handler error:', err);
+    res.status(500).json({ error: err.toString() });
+  }
 });
 
 app.get('/favicon.ico', (_req, res) => res.status(204).end());
