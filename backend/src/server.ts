@@ -144,6 +144,9 @@ app.options('*', cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
+// ── Trust proxy: Required for Render and other reverse proxies ────────────────
+app.set('trust proxy', true);
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(mongoSanitize());
