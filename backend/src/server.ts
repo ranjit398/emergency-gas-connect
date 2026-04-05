@@ -97,8 +97,8 @@ setSocketIO(io);
 setLifecycleIO(io);
 setReassignmentIO(io);
 
-logger.info('[Boot] Socket.IO ready — polling only');
-logger.info('[Boot] Allowed origins:', ALLOWED_ORIGINS);
+console.log('[Boot] Socket.IO ready — polling only');
+console.log('[Boot] Allowed origins:', ALLOWED_ORIGINS);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Express middleware — CORS also set here for API routes
