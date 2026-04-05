@@ -1,9 +1,7 @@
-﻿
-import 'dotenv/config';
+﻿import 'dotenv/config';
 import express, { Express, Request, Response, NextFunction } from 'express';
 import { createServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
-import cors from 'cors';
 import compression from 'compression';
 import helmet from 'helmet';
 import mongoSanitize from 'express-mongo-sanitize';
@@ -16,66 +14,78 @@ import errorHandler from '@middleware/errorHandler';
 import { apiLimiter, authLimiter } from '@middleware/rateLimiter';
 import { socketHandler } from '@socket/handlers';
 
-// Routes
-import authRoutes             from '@routes/auth';
-import profileRoutes          from '@routes/profile';
-import requestRoutes          from '@routes/requests';
-import providerRoutes         from '@routes/providers';
+import authRoutes              from '@routes/auth';
+import profileRoutes           from '@routes/profile';
+import requestRoutes           from '@routes/requests';
+import providerRoutes          from '@routes/providers';
 import providerDashboardRoutes from '@routes/provider-dashboard';
-import messageRoutes          from '@routes/messages';
-import ratingRoutes           from '@routes/ratings';
-import notificationRoutes     from '@routes/notifications';
-import matchRoutes            from '@routes/smart/match.routes';
-import liveRoutes             from '@routes/live';
+import messageRoutes           from '@routes/messages';
+import ratingRoutes            from '@routes/ratings';
+import notificationRoutes      from '@routes/notifications';
+import matchRoutes             from '@routes/smart/match.routes';
+import liveRoutes              from '@routes/live';
+import { setSocketIO }         from '@services/EmergencyRequestService';
+import { setLifecycleIO }      from '@services/requestLifecycle.service';
+import { setReassignmentIO }   from '@services/reassignment.service';
 
-// Service IO injection
-import { setSocketIO }       from '@services/EmergencyRequestService';
-import { setLifecycleIO }    from '@services/requestLifecycle.service';
-import { setReassignmentIO } from '@services/reassignment.service';
-
-// ── App setup ─────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 const app: Express = express();
 const httpServer   = createServer(app);
 
-// ── CORS: single source of truth ─────────────────────────────────────────────
-const allowedOrigins: string[] = [
+const ALLOWED_ORIGINS = [
   'http://localhost:5173',
   'http://localhost:3000',
   'https://emergency-gas-frontend.onrender.com',
 ];
 
-// Add any extra origins from env
-if (process.env.CORS_ORIGIN) {
-  process.env.CORS_ORIGIN.split(',').forEach(o => {
-    const trimmed = o.trim();
-    if (trimmed && !allowedOrigins.includes(trimmed)) allowedOrigins.push(trimmed);
-  });
-}
-if (process.env.FRONTEND_URL) {
-  const url = process.env.FRONTEND_URL.trim();
-  if (url && !allowedOrigins.includes(url)) allowedOrigins.push(url);
-}
+// Pull extra origins from env
+(process.env.CORS_ORIGIN || '').split(',').forEach(o => {
+  const t = o.trim();
+  if (t && !ALLOWED_ORIGINS.includes(t)) ALLOWED_ORIGINS.push(t);
+});
 
-logger.info('[CORS] Allowed origins:', allowedOrigins);
+// ─────────────────────────────────────────────────────────────────────────────
+// THE FIX: Hook into the raw Node.js HTTP server BEFORE Socket.IO or Express.
+// Socket.IO processes /socket.io/* requests itself, bypassing Express middleware.
+// The only way to inject CORS headers on those requests is at the raw HTTP level.
+// ─────────────────────────────────────────────────────────────────────────────
+httpServer.on('request', (req, res) => {
+  const origin = req.headers['origin'] as string | undefined;
 
-// ── Socket.IO ─────────────────────────────────────────────────────────────────
+  // Always set CORS headers — whether origin is known or not
+  const allowOrigin = (origin && ALLOWED_ORIGINS.includes(origin))
+    ? origin
+    : (origin || '*');
+
+  res.setHeader('Access-Control-Allow-Origin', allowOrigin);
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Vary', 'Origin');
+
+  // Handle OPTIONS preflight here so Socket.IO never sees it
+  if (req.method === 'OPTIONS') {
+    res.writeHead(200);
+    res.end();
+    // Don't return — let the event bubble so Express/Socket.IO can also handle
+    // Actually DO return to prevent double-response:
+    return;
+  }
+
+  // For all other requests, let Socket.IO + Express handle them normally
+  // (this listener fires for EVERY request, Express is attached separately)
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Socket.IO — CORS also set here as a second layer
+// ─────────────────────────────────────────────────────────────────────────────
 const io = new SocketIOServer(httpServer, {
   cors: {
-    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-      // Allow if no origin (mobile apps) or if in allowed list
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        // Log but still allow for localhost dev
-        logger.warn(`[Socket.IO CORS] Unknown origin: ${origin}`);
-        callback(null, true); // Permissive: allow all
-      }
-    },
+    origin: ALLOWED_ORIGINS,
     methods: ['GET', 'POST', 'OPTIONS'],
     credentials: true,
     allowedHeaders: ['Authorization', 'Content-Type'],
   },
-  // polling only — Render free tier does not support WebSocket upgrades
   transports: ['polling'],
   allowUpgrades: false,
   pingTimeout: 60000,
@@ -83,70 +93,35 @@ const io = new SocketIOServer(httpServer, {
   cookie: false,
 });
 
-logger.info('[Socket.IO] Initialized with transports: polling only');
-
-// Inject io into services
 setSocketIO(io);
 setLifecycleIO(io);
 setReassignmentIO(io);
 
-// ── Socket.IO CORS middleware (FIRST, before all other middleware) ────────────
-app.use((req: Request, res: Response, next: NextFunction) => {
-  if (req.path.startsWith('/socket.io')) {
-    const origin = req.headers.origin as string | undefined;
-    // Allow all origins for socket.io polling compatibility
-    res.header('Access-Control-Allow-Origin', origin || '*');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.header('Access-Control-Allow-Credentials', 'true');
+logger.info('[Boot] Socket.IO ready — polling only');
+logger.info('[Boot] Allowed origins:', ALLOWED_ORIGINS);
 
-    // Handle preflight
-    if (req.method === 'OPTIONS') {
-      return res.sendStatus(200);
-    }
-  }
+// ─────────────────────────────────────────────────────────────────────────────
+// Express middleware — CORS also set here for API routes
+// ─────────────────────────────────────────────────────────────────────────────
+app.use(helmet({
+  crossOriginEmbedderPolicy: false,
+  contentSecurityPolicy: false,   // CSP belongs in frontend, not API
+}));
+
+// Express-level CORS (covers /api/v1/* routes)
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const origin = req.headers.origin as string | undefined;
+  const allow  = (origin && ALLOWED_ORIGINS.includes(origin)) ? origin : (origin || '*');
+  res.setHeader('Access-Control-Allow-Origin', allow);
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,PATCH,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+  res.setHeader('Vary', 'Origin');
+  if (req.method === 'OPTIONS') { res.status(200).end(); return; }
   next();
 });
 
-// ── Security middleware ────────────────────────────────────────────────────────
-app.use(helmet({
-  crossOriginEmbedderPolicy: false,
-  contentSecurityPolicy: false, // disable CSP to avoid blocking Socket.IO
-}));
-
-// ── Express CORS ──────────────────────────────────────────────────────────────
-app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      logger.warn(`[CORS] Blocked origin: ${origin}`);
-      callback(null, false); // don't throw — just reject silently
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  optionsSuccessStatus: 200,
-}));
-
-// Handle preflight for all routes (including socket.io)
-app.options('*', cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(null, true); // Allow all for socket.io compatibility
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-}));
-
-// ── Trust proxy: Required for Render and other reverse proxies ────────────────
 app.set('trust proxy', true);
-
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(mongoSanitize());
@@ -155,24 +130,23 @@ app.use(compression());
 app.use(requestLogger);
 app.set('io', io);
 
-// ── Socket handlers ────────────────────────────────────────────────────────────
 socketHandler(io);
 
-// ── Health check ──────────────────────────────────────────────────────────────
-app.get('/health', (_req: Request, res: Response) => {
+// ─────────────────────────────────────────────────────────────────────────────
+// Routes
+// ─────────────────────────────────────────────────────────────────────────────
+app.get('/health', (_req, res) => {
   res.json({
-    success: true,
-    message: 'Server is running',
-    timestamp: new Date().toISOString(),
-    environment: config.nodeEnv,
-    socketIO: 'active',
-    allowedOrigins,
+    ok: true,
+    ts: new Date().toISOString(),
+    env: config.nodeEnv,
+    allowedOrigins: ALLOWED_ORIGINS,
+    socket: 'polling-only',
   });
 });
 
-app.get('/favicon.ico', (_req: Request, res: Response) => res.status(204).end());
+app.get('/favicon.ico', (_req, res) => res.status(204).end());
 
-// ── API v1 ────────────────────────────────────────────────────────────────────
 const v1 = express.Router();
 v1.use(apiLimiter);
 v1.use('/auth',               authLimiter, authRoutes);
@@ -188,62 +162,40 @@ v1.use('/match',              matchRoutes);
 v1.use('/live',               liveRoutes);
 app.use('/api/v1', v1);
 
-// ── 404 ────────────────────────────────────────────────────────────────────────
-app.use((req: Request, res: Response) => {
-  res.status(404).json({
-    success: false,
-    error: { status: 404, message: 'Route not found', path: req.path },
-  });
+app.use((_req: Request, res: Response) => {
+  res.status(404).json({ success: false, error: { message: 'Not found' } });
 });
 
-// ── Error handler ──────────────────────────────────────────────────────────────
 app.use(errorHandler);
 
-// ── Start ──────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Start
+// ─────────────────────────────────────────────────────────────────────────────
 const startServer = async () => {
   try {
     await connectDatabase();
+    logger.info('[Boot] MongoDB connected');
   } catch (err) {
-    logger.error('Database connection failed:', err);
+    logger.error('[Boot] MongoDB failed:', err);
     process.exit(1);
   }
 
-  const PORT = config.port || 5000;
+  const PORT = Number(process.env.PORT) || 5000;
   httpServer.setMaxListeners(50);
-
   httpServer.listen(PORT, '0.0.0.0', () => {
-    logger.info(`✓ Server running on port ${PORT}`);
-    logger.info(`Environment: ${config.nodeEnv}`);
+    logger.info(`[Boot] Listening on port ${PORT}`);
   });
-
   httpServer.on('error', (err: any) => {
-    logger.error('Server error:', err);
+    logger.error('[Boot] HTTP error:', err);
     process.exit(1);
   });
 };
 
-// ── Graceful shutdown ──────────────────────────────────────────────────────────
-const gracefulShutdown = (signal: string) => {
-  logger.info(`${signal} received. Shutting down...`);
-  io.close();
-  httpServer.close(() => {
-    logger.info('Server closed');
-    process.exit(0);
-  });
-  setTimeout(() => process.exit(1), 10000);
-};
-
-process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-process.on('SIGINT',  () => gracefulShutdown('SIGINT'));
-process.on('unhandledRejection', (reason) => {
-  logger.error('Unhandled Rejection:', reason);
-});
-process.on('uncaughtException', (error) => {
-  logger.error('Uncaught Exception:', error);
-  process.exit(1);
-});
+process.on('SIGTERM', () => { io.close(); httpServer.close(() => process.exit(0)); });
+process.on('SIGINT',  () => { io.close(); httpServer.close(() => process.exit(0)); });
+process.on('unhandledRejection', (r) => logger.error('UnhandledRejection:', r));
+process.on('uncaughtException',  (e) => { logger.error('UncaughtException:', e); process.exit(1); });
 
 startServer();
-
 export { io };
 export default httpServer;
