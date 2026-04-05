@@ -175,20 +175,22 @@ const startServer = async () => {
   try {
     await connectDatabase();
     logger.info('[Boot] MongoDB connected');
+
+    const PORT = Number(process.env.PORT) || 5000;
+    httpServer.setMaxListeners(50);
+    
+    httpServer.listen(PORT, '0.0.0.0', () => {
+      logger.info(`[Boot] Listening on port ${PORT}`);
+    });
+
+    httpServer.on('error', (err: any) => {
+      logger.error('[Boot] HTTP error:', err);
+      process.exit(1);
+    });
   } catch (err) {
-    logger.error('[Boot] MongoDB failed:', err);
+    logger.error('[Boot] Startup failed:', err);
     process.exit(1);
   }
-
-  const PORT = Number(process.env.PORT) || 5000;
-  httpServer.setMaxListeners(50);
-  httpServer.listen(PORT, '0.0.0.0', () => {
-    logger.info(`[Boot] Listening on port ${PORT}`);
-  });
-  httpServer.on('error', (err: any) => {
-    logger.error('[Boot] HTTP error:', err);
-    process.exit(1);
-  });
 };
 
 process.on('SIGTERM', () => { io.close(); httpServer.close(() => process.exit(0)); });
