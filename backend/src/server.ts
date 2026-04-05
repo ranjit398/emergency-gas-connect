@@ -44,40 +44,7 @@ const ALLOWED_ORIGINS = [
   if (t && !ALLOWED_ORIGINS.includes(t)) ALLOWED_ORIGINS.push(t);
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// THE FIX: Hook into the raw Node.js HTTP server BEFORE Socket.IO or Express.
-// Socket.IO processes /socket.io/* requests itself, bypassing Express middleware.
-// The only way to inject CORS headers on those requests is at the raw HTTP level.
-// ─────────────────────────────────────────────────────────────────────────────
-httpServer.on('request', (req, res) => {
-  const origin = req.headers['origin'] as string | undefined;
-
-  // Always set CORS headers — whether origin is known or not
-  const allowOrigin = (origin && ALLOWED_ORIGINS.includes(origin))
-    ? origin
-    : (origin || '*');
-
-  res.setHeader('Access-Control-Allow-Origin', allowOrigin);
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Vary', 'Origin');
-
-  // Handle OPTIONS preflight here so Socket.IO never sees it
-  if (req.method === 'OPTIONS') {
-    res.writeHead(200);
-    res.end();
-    // Don't return — let the event bubble so Express/Socket.IO can also handle
-    // Actually DO return to prevent double-response:
-    return;
-  }
-
-  // For all other requests, let Socket.IO + Express handle them normally
-  // (this listener fires for EVERY request, Express is attached separately)
-});
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Socket.IO — CORS also set here as a second layer
+// Socket.IO — CORS configured here
 // ─────────────────────────────────────────────────────────────────────────────
 const io = new SocketIOServer(httpServer, {
   cors: {
