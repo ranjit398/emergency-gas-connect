@@ -94,11 +94,21 @@ httpServer.on('request', (req, res) => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Socket.IO — allow all origins since writeHead patch handles CORS
+// Socket.IO — use CORS callback to return specific origin (not wildcard)
+// This is required because frontend sends withCredentials: true,
+// and credentials mode rejects wildcard origins
 // ─────────────────────────────────────────────────────────────────────────────
 const io = new SocketIOServer(httpServer, {
   cors: {
-    origin: '*',          // Wildcard — writeHead patch above sets the real origin
+    origin: (requestOrigin, callback) => {
+      // If request has origin header and it's in allowed list, return it
+      if (requestOrigin && ALLOWED_ORIGINS.includes(requestOrigin)) {
+        callback(null, requestOrigin);
+      } else {
+        // Default to frontend URL for Render deployments
+        callback(null, 'https://emergency-gas-frontend.onrender.com');
+      }
+    },
     methods: ['GET', 'POST', 'OPTIONS'],
     credentials: true,
     allowedHeaders: ['Authorization', 'Content-Type'],
