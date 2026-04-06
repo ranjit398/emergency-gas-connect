@@ -66,22 +66,28 @@ httpServer.on('request', (req, res) => {
   // Patch writeHead on this response to inject CORS before headers are sent
   const originalWriteHead = res.writeHead.bind(res);
   (res as any).writeHead = function(statusCode: number, ...args: any[]) {
-    // Inject our CORS headers — these override anything previously set
-    try {
-      res.setHeader('Access-Control-Allow-Origin', corsOrigin);
-      res.setHeader('Access-Control-Allow-Credentials', 'true');
-      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-      res.setHeader('Vary', 'Origin');
-    } catch {
-      // Headers already sent — ignore
+    // Only inject headers if they haven't been sent yet
+    if (!res.headersSent) {
+      try {
+        res.setHeader('Access-Control-Allow-Origin', corsOrigin);
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+        res.setHeader('Vary', 'Origin');
+      } catch {
+        // Headers already sent — ignore
+      }
     }
     return originalWriteHead(statusCode, ...args);
   };
 
   // Handle OPTIONS preflight immediately at raw HTTP level
   if (req.method === 'OPTIONS') {
-    res.writeHead(200);
+    // Don't call writeHead - the patch already injected headers
+    // Just end the response
+    if (!res.headersSent) {
+      res.writeHead(200);
+    }
     res.end();
     return;
   }
