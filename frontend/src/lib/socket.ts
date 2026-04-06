@@ -2,10 +2,14 @@
 import { io, Socket } from 'socket.io-client';
 import { tokenStorage } from './api';
 
+// CRITICAL: Must point to actual backend service on Render
+// Using 'emergency-gas-connect' not 'emergency-gas-backend'
 const SOCKET_URL = (
   import.meta.env.VITE_SOCKET_URL ||
   import.meta.env.VITE_API_URL?.replace('/api/v1', '') ||
-  'https://emergency-gas-connect.onrender.com'  // ← Correct backend URL
+  (typeof window !== 'undefined' && window.location.hostname === 'localhost'
+    ? 'http://localhost:5000'
+    : 'https://emergency-gas-connect.onrender.com')
 );
 
 console.log('[Socket] Target URL:', SOCKET_URL);
