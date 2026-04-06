@@ -55,11 +55,6 @@ async function getComprehensiveStats(userId: string, role: 'provider' | 'helper'
   }
 }
 
-// ── Helper functions ──────────────────────────────────────────────────────────
-function startOfDay() { const d = new Date(); d.setHours(0,0,0,0); return d; }
-function startOfMonth() { return new Date(new Date().getFullYear(), new Date().getMonth(), 1); }
-function daysAgo(n: number) { const d = new Date(); d.setDate(d.getDate()-n); d.setHours(0,0,0,0); return d; }
-
 // Safe geospatial query wrapper — falls back to non-geo if geo fails
 async function tryGeoNearAggregation(
   pipeline: any[],

@@ -2,6 +2,7 @@
 // World-class provider admin dashboard — fully dynamic, real-time
 
 import { useState } from 'react';
+import { useEffect } from 'react';
 import {
   Box, Container, Grid, Typography, Paper, Button, Tab, Tabs,
   Chip, LinearProgress, Avatar, IconButton, Tooltip, CircularProgress,
@@ -18,6 +19,8 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatDistanceToNow, format } from 'date-fns';
 import { useProviderDashboard } from '../hooks/useProviderDashboard';
+import setupSocketDebugger from '../utils/socketDebugger';
+import { SocketStatus } from '../components/SocketStatus';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Colour tokens
@@ -224,6 +227,11 @@ export default function ProviderDashboardEnhanced() {
     refresh, updateInventory,
   } = useProviderDashboard(60_000); // ✅ 60s instead of 30s = half the API calls
 
+  // Initialize socket debugger on component mount
+  useEffect(() => {
+    setupSocketDebugger();
+  }, []);
+
   if (loading) return (
     <Box sx={{ minHeight: '100vh', background: '#0a0a0b', pt: 10 }}>
       <Container maxWidth="xl">
@@ -300,6 +308,7 @@ export default function ProviderDashboardEnhanced() {
                 <RefreshCw size={16} style={{ animation: refreshing ? 'spin 1s linear infinite' : 'none' }} />
               </IconButton>
             </Tooltip>
+            <SocketStatus />
           </Box>
         </Box>
       </Box>

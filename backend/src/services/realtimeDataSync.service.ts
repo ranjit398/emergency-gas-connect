@@ -20,8 +20,14 @@ const activeRefreshTimers = new Map<string, NodeJS.Timeout>();
  */
 export function initializeRealtimeSync(socketIOInstance: Server) {
   io = socketIOInstance;
+  
+  // Log socket connections
+  io.on('connection', (socket: any) => {
+    logger.info(`[RealtimeSync] Socket connected: ${socket.userId} - Transport: ${socket.conn?.transport?.name}`);
+  });
+
   setupChangeStreams();
-  logger.info('[RealtimeSync] Initialized');
+  logger.info('[RealtimeSync] Initialized with change stream monitoring');
 }
 
 /**
@@ -42,9 +48,12 @@ function setupChangeStreams() {
       const helperId = fullDoc.helperId?.toString();
       const seekerId = fullDoc.seekerId?.toString();
 
+      logger.debug(`[RealtimeSync] Request change: ${change.operationType} - ${requestId}`);
+
       // Notify provider
       if (providerId) {
         scheduleDataPush(providerId, 'provider', 2000);
+        logger.debug(`[RealtimeSync] Scheduled provider refresh: ${providerId}`);
       }
 
       // Notify helper
@@ -163,11 +172,9 @@ function scheduleDataPush(userId: string, role: 'provider' | 'helper' | 'seeker'
       // Determine actual role if not provided
       let actualRole = role;
       if (!actualRole) {
-        // Try provider first
         const provider = await Provider.findOne({ userId });
         if (provider) actualRole = 'provider';
         else {
-          // Check if helper/seeker
           const profile = await Profile.findOne({ userId });
           actualRole = profile ? 'helper' : 'seeker';
         }
@@ -185,27 +192,30 @@ function scheduleDataPush(userId: string, role: 'provider' | 'helper' | 'seeker'
         }
 
         // Push to user's socket room
-        io!.to(`user:${userId}`).emit('live:data-refresh', {
+        const room = `user:${userId}`;
+        io!.to(room).emit('live:data-refresh', {
           type: 'FULL_REFRESH',
           data,
           timestamp: new Date(),
         });
 
+        logger.info(`[RealtimeSync] Pushed live data to ${room} (role: ${actualRole})`);
+
         // For providers, also push to provider room
         if (actualRole === 'provider') {
           const provider = await Provider.findOne({ userId });
           if (provider) {
-            io!.to(`provider:${provider._id.toString()}`).emit('dashboard_update', {
+            const providerRoom = `provider:${provider._id.toString()}`;
+            io!.to(providerRoom).emit('dashboard_update', {
               type: 'FULL_REFRESH',
               data,
               timestamp: new Date(),
             });
+            logger.info(`[RealtimeSync] Pushed dashboard update to ${providerRoom}`);
           }
         }
-
-        logger.debug(`[RealtimeSync] Pushed data to ${userId} (role: ${actualRole})`);
       } catch (err) {
-        logger.error(`[RealtimeSync] Failed to push data for ${userId}:`, err);
+        logger.error(`[RealtimeSync] Failed to fetch/push data for ${userId}:`, err);
       }
     } finally {
       activeRefreshTimers.delete(key);

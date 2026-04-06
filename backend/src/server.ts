@@ -29,6 +29,7 @@ import { setSocketIO }         from '@services/EmergencyRequestService';
 import { setLifecycleIO }      from '@services/requestLifecycle.service';
 import { setReassignmentIO }   from '@services/reassignment.service';
 import { initializeRealtimeSync } from '@services/realtimeDataSync.service';
+import { logSocketDebugInfo }  from '@utils/socketDebugLog';
 
 // ─────────────────────────────────────────────────────────────────────────────
 const app: Express = express();
@@ -80,6 +81,7 @@ setSocketIO(io);
 setLifecycleIO(io);
 setReassignmentIO(io);
 initializeRealtimeSync(io);
+logSocketDebugInfo();
 
 console.log('[Boot] Socket.IO ready — polling only');
 console.log('[Boot] Allowed origins:', ALLOWED_ORIGINS);
