@@ -12,7 +12,7 @@ export function setupSocketDebugger() {
     status: () => ({
       connected: socket?.connected,
       id: socket?.id,
-      uri: socket?.uri,
+      uri: (socket as any)?.uri,
       transport: socket?.io?.engine?.transport?.name,
       readyState: socket?.io?.engine?.readyState,
     }),
@@ -82,10 +82,10 @@ export function setupSocketDebugger() {
         connected: socket.connected,
         id: socket.id,
         transport: socket.io?.engine?.transport?.name,
-        uri: socket.uri,
-        url: socket.io?.engine?.hostname,
-        port: socket.io?.engine?.port,
-        path: socket.io?.engine?.path,
+        uri: (socket as any)?.uri,
+        url: (socket.io?.engine as any)?.hostname,
+        port: (socket.io?.engine as any)?.port,
+        path: (socket.io?.engine as any)?.path,
         timestamps: {
           connected: socket.connected,
         },
@@ -104,7 +104,7 @@ export function setupSocketDebugger() {
     // View active subscriptions/rooms
     rooms: () => {
       if (!socket) return {};
-      return socket.rooms ? Array.from(socket.rooms) : [];
+      return (socket as any).rooms ? Array.from((socket as any).rooms) : [];
     },
 
     // Quick health check
@@ -116,10 +116,10 @@ export function setupSocketDebugger() {
       return {
         connected: socket.connected,
         transport: socket.io?.engine?.transport?.name,
-        roomsJoined: socket.rooms ? Array.from(socket.rooms) : [],
+        roomsJoined: (socket as any).rooms ? Array.from((socket as any).rooms) : [],
         listeners: Object.keys((socket as any)._callbacks || {}),
         latency: (window as any).socketLatency || 'N/A',
-        uptime: socket.io?.engine?.uptime,
+        uptime: (socket.io?.engine as any)?.uptime,
       };
     },
   };
