@@ -57,6 +57,8 @@ function setupChangeStreams() {
       // CRITICAL: For NEW requests (no provider assigned yet), broadcast to ALL PROVIDERS
       if (change.operationType === 'insert') {
         logger.info(`[RealtimeSync] NEW REQUEST CREATED - broadcasting to all providers: ${requestId}`);
+        
+        // Broadcast the new request event
         io!.emit('request:new', {
           id: requestId,
           cylinderType: fullDoc.cylinderType,
@@ -65,6 +67,14 @@ function setupChangeStreams() {
           location: fullDoc.location,
           message: fullDoc.message,
           seekerName: fullDoc.seekerName,
+          timestamp: new Date(),
+        });
+
+        // IMPORTANT: Force ALL providers to refresh their dashboard stats
+        // This ensures the new request count updates even if not yet assigned
+        logger.info(`[RealtimeSync] Triggering dashboard refresh for all connected providers`);
+        io!.emit('dashboard_refresh_trigger', {
+          reason: 'NEW_REQUEST',
           timestamp: new Date(),
         });
       }

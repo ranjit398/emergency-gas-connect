@@ -160,6 +160,12 @@ export function useProviderDashboard(autoRefreshMs = 30_000) {
       }
     };
 
+    const handleDashboardRefreshTrigger = () => {
+      // Backend triggered a refresh - reload all stats immediately
+      console.log('[Dashboard] Refresh triggered by backend');
+      loadAll(true);
+    };
+
     const handleNewRequest = (d: any) => {
       setLiveEvents((prev) => [{
         id: `new_${Date.now()}`,
@@ -167,8 +173,9 @@ export function useProviderDashboard(autoRefreshMs = 30_000) {
         message: `🆕 New ${d.cylinderType ?? ''} emergency request`,
         timestamp: new Date(),
       }, ...prev.slice(0, 29)]);
-      // Wait 500ms for DB to persist the request, then refresh all stats
-      setTimeout(() => loadAll(true), 500);
+      // Backend will send dashboard_refresh_trigger, wait for that
+      // But as failsafe, also refresh after 1 second
+      setTimeout(() => loadAll(true), 1000);
     };
 
     const handleStatusChange = (d: any) => {
@@ -182,14 +189,16 @@ export function useProviderDashboard(autoRefreshMs = 30_000) {
       setTimeout(() => loadAll(true), 500);
     };
 
-    socket.on('dashboard_update',        handleDashboardUpdate);
-    socket.on('request:new',             handleNewRequest);
-    socket.on('request:status-changed',  handleStatusChange);
+    socket.on('dashboard_update',           handleDashboardUpdate);
+    socket.on('dashboard_refresh_trigger',  handleDashboardRefreshTrigger);
+    socket.on('request:new',                handleNewRequest);
+    socket.on('request:status-changed',     handleStatusChange);
 
     return () => {
-      socket.off('dashboard_update',       handleDashboardUpdate);
-      socket.off('request:new',            handleNewRequest);
-      socket.off('request:status-changed', handleStatusChange);
+      socket.off('dashboard_update',           handleDashboardUpdate);
+      socket.off('dashboard_refresh_trigger',  handleDashboardRefreshTrigger);
+      socket.off('request:new',                handleNewRequest);
+      socket.off('request:status-changed',     handleStatusChange);
     };
   }, [loadAll]);
 
