@@ -1,5 +1,6 @@
 ﻿import 'dotenv/config';
 import express, { Express, Request, Response, NextFunction } from 'express';
+import cors from 'cors';
 import { createServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import compression from 'compression';
@@ -48,29 +49,37 @@ const ALLOWED_ORIGINS = [
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Socket.IO — Dynamic CORS for polling transport
+// HTTP-level CORS for Socket.IO polling requests (OPTIONS preflight handling)
+// ─────────────────────────────────────────────────────────────────────────────
+httpServer.on('request', (req, res) => {
+  // Only intercept OPTIONS (preflight) and socket.io requests
+  if (req.method === 'OPTIONS' || (req.url && req.url.includes('/socket.io/'))) {
+    const origin = req.headers.origin;
+    if (origin && ALLOWED_ORIGINS.includes(origin)) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    }
+    // Complete OPTIONS requests immediately
+    if (req.method === 'OPTIONS') {
+      res.writeHead(200);
+      res.end();
+    }
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Socket.IO — Simplified CORS for polling transport
 // ─────────────────────────────────────────────────────────────────────────────
 const io = new SocketIOServer(httpServer, {
   cors: {
-    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-      // Allow requests without origin (like Postman, mobile apps)
-      if (!origin) return callback(null, true);
-      
-      // Check if origin is allowed
-      if (ALLOWED_ORIGINS.includes(origin)) {
-        return callback(null, true);
-      }
-      
-      // Log rejected origins for debugging
-      logger.warn(`[Socket.IO CORS] Rejected origin: ${origin}`);
-      callback(new Error('CORS not allowed'), false);
-    },
-    methods: ['GET', 'POST', 'OPTIONS'],
+    origin: ALLOWED_ORIGINS, // Allow specific origins
     credentials: true,
+    methods: ['GET', 'POST', 'OPTIONS'],
     allowedHeaders: ['Authorization', 'Content-Type'],
   },
-  transports: ['polling'],
-  allowUpgrades: false,
+  transports: ['polling', 'websocket'],
   pingTimeout: 60000,
   pingInterval: 25000,
   cookie: false,
@@ -92,14 +101,22 @@ app.use(helmet({
   contentSecurityPolicy: false,   // CSP belongs in frontend, not API
 }));
 
-// Express-level CORS (covers /api/v1/* routes)
+// CORS middleware — covers both /api/v1/* routes AND helps with Socket.IO
+app.use(cors({
+  origin: ALLOWED_ORIGINS,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 200,
+}));
+
+// Express-level fallback CORS (in case cors middleware doesn't catch all)
 app.use((req: Request, res: Response, next: NextFunction) => {
   const origin = req.headers.origin as string | undefined;
-  const allow  = (origin && ALLOWED_ORIGINS.includes(origin)) ? origin : (origin || '*');
-  res.setHeader('Access-Control-Allow-Origin', allow);
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,PATCH,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+  if (origin && ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  }
   res.setHeader('Vary', 'Origin');
   if (req.method === 'OPTIONS') { res.status(200).end(); return; }
   next();
