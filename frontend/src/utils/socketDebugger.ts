@@ -1,8 +1,9 @@
 // frontend/src/utils/socketDebugger.ts
 // Runtime socket diagnostics — helps verify Socket.IO is working
 
+import { getSocket } from '../lib/socket';
+
 export function setupSocketDebugger() {
-  const { getSocket } = require('../lib/socket');
   const socket = getSocket();
 
   // Define debugger object globally for console access
