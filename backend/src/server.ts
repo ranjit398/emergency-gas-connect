@@ -80,12 +80,10 @@ const io = new SocketIOServer(httpServer, {
 setSocketIO(io);
 setLifecycleIO(io);
 setReassignmentIO(io);
-initializeRealtimeSync(io);
 logSocketDebugInfo();
 
 console.log('[Boot] Socket.IO ready — polling only');
 console.log('[Boot] Allowed origins:', ALLOWED_ORIGINS);
-console.log('[Boot] Real-time data sync initialized');
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Express middleware — CORS also set here for API routes
@@ -172,6 +170,10 @@ const startServer = async () => {
     console.log('[Boot] Connecting to MongoDB...');
     await connectDatabase();
     console.log('[Boot] ✓ MongoDB connected');
+
+    // Initialize real-time sync AFTER database is connected
+    initializeRealtimeSync(io);
+    console.log('[Boot] Real-time data sync initialized');
 
     console.log('[Boot] Setting up HTTP server...');
     const PORT = Number(process.env.PORT) || 5000;

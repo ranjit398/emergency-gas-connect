@@ -38,6 +38,10 @@ function setupChangeStreams() {
 
   // Watch Emergency Requests for changes
   const requestStream = EmergencyRequest.collection.watch();
+  if (!requestStream) {
+    logger.error('[RealtimeSync] Failed to create EmergencyRequest change stream');
+    return;
+  }
   requestStream.on('change', async (change: any) => {
     try {
       const fullDoc = change.fullDocument || change.documentKey;
@@ -82,7 +86,10 @@ function setupChangeStreams() {
 
   // Watch Provider for inventory/profile changes
   const providerStream = Provider.collection.watch();
-  providerStream.on('change', async (change: any) => {
+  if (!providerStream) {
+    logger.error('[RealtimeSync] Failed to create Provider change stream');
+  } else {
+    providerStream.on('change', async (change: any) => {
     try {
       const fullDoc = change.fullDocument || change.documentKey;
       const providerId = fullDoc._id?.toString();
@@ -102,10 +109,14 @@ function setupChangeStreams() {
       logger.error('[RealtimeSync] Provider stream error:', err);
     }
   });
+  }
 
   // Watch Ratings for real-time updates
   const ratingStream = Rating.collection.watch();
-  ratingStream.on('change', async (change: any) => {
+  if (!ratingStream) {
+    logger.error('[RealtimeSync] Failed to create Rating change stream');
+  } else {
+    ratingStream.on('change', async (change: any) => {
     try {
       const fullDoc = change.fullDocument || change.documentKey;
       if (!fullDoc || change.operationType !== 'insert') return;
@@ -123,10 +134,14 @@ function setupChangeStreams() {
       logger.error('[RealtimeSync] Rating stream error:', err);
     }
   });
+  }
 
   // Watch Messages for new messages
   const messageStream = Message.collection.watch();
-  messageStream.on('change', async (change: any) => {
+  if (!messageStream) {
+    logger.error('[RealtimeSync] Failed to create Message change stream');
+  } else {
+    messageStream.on('change', async (change: any) => {
     try {
       if (change.operationType !== 'insert') return;
 
@@ -147,6 +162,7 @@ function setupChangeStreams() {
       logger.error('[RealtimeSync] Message stream error:', err);
     }
   });
+  }
 
   logger.info('[RealtimeSync] Change streams initialized');
 }
