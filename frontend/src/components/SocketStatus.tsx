@@ -17,8 +17,8 @@ export function SocketStatus() {
       setStatus(socket.connected ? 'connected' : 'disconnected');
       setTransport(socket.io?.engine?.transport?.name || 'unknown');
       
-      // Get joined rooms
-      const rooms = socket.rooms ? Array.from(socket.rooms).join(', ') : 'none';
+      // Get joined rooms from socket internal state
+      const rooms = (socket as any).rooms ? Array.from((socket as any).rooms).join(', ') : 'none';
       setRoom(rooms.substring(0, 50) + (rooms.length > 50 ? '...' : ''));
     };
 
