@@ -50,19 +50,27 @@ const ALLOWED_ORIGINS = [
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HTTP-level CORS for Socket.IO polling requests (OPTIONS preflight handling)
+// Only set headers if they haven't been sent yet
 // ─────────────────────────────────────────────────────────────────────────────
 httpServer.on('request', (req, res) => {
+  // Skip if headers already sent
+  if (res.headersSent) return;
+  
   // Only intercept OPTIONS (preflight) and socket.io requests
   if (req.method === 'OPTIONS' || (req.url && req.url.includes('/socket.io/'))) {
     const origin = req.headers.origin;
     if (origin && ALLOWED_ORIGINS.includes(origin)) {
-      res.setHeader('Access-Control-Allow-Origin', origin);
-      res.setHeader('Access-Control-Allow-Credentials', 'true');
-      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+      try {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+      } catch (err) {
+        // Headers already sent, safe to ignore
+      }
     }
     // Complete OPTIONS requests immediately
-    if (req.method === 'OPTIONS') {
+    if (req.method === 'OPTIONS' && !res.headersSent) {
       res.writeHead(200);
       res.end();
     }
