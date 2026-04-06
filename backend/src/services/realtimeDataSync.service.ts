@@ -54,7 +54,22 @@ function setupChangeStreams() {
 
       logger.debug(`[RealtimeSync] Request change: ${change.operationType} - ${requestId}`);
 
-      // Notify provider
+      // CRITICAL: For NEW requests (no provider assigned yet), broadcast to ALL PROVIDERS
+      if (change.operationType === 'insert') {
+        logger.info(`[RealtimeSync] NEW REQUEST CREATED - broadcasting to all providers: ${requestId}`);
+        io!.emit('request:new', {
+          id: requestId,
+          cylinderType: fullDoc.cylinderType,
+          quantity: fullDoc.quantity,
+          status: fullDoc.status,
+          location: fullDoc.location,
+          message: fullDoc.message,
+          seekerName: fullDoc.seekerName,
+          timestamp: new Date(),
+        });
+      }
+
+      // Notify specific provider if assigned
       if (providerId) {
         scheduleDataPush(providerId, 'provider', 2000);
         logger.debug(`[RealtimeSync] Scheduled provider refresh: ${providerId}`);
