@@ -49,16 +49,24 @@ const ALLOWED_ORIGINS = [
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CRITICAL: Set CORS headers at HTTP level for Socket.IO polling (XHR requests)
-// Socket.IO processes /socket.io/* before Express sees them, so middleware won't work
+// Only set headers if they haven't been sent yet to avoid ERR_HTTP_HEADERS_SENT
 // ─────────────────────────────────────────────────────────────────────────────
 httpServer.on('request', (req, res) => {
+  // Skip if headers already sent (Socket.IO/engine.io will have already sent them)
+  if (res.headersSent) return;
+  
   const origin = req.headers['origin'] as string | undefined;
   const allow = (origin && ALLOWED_ORIGINS.includes(origin)) ? origin : '*';
   
-  res.setHeader('Access-Control-Allow-Origin', allow);
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  try {
+    res.setHeader('Access-Control-Allow-Origin', allow);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  } catch (err) {
+    // Headers already sent, safe to ignore
+    logger.debug('[CORS] Headers already sent, skipping');
+  }
 });
 
 // Socket.IO — CORS configured here
