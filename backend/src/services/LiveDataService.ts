@@ -14,6 +14,50 @@ import { NotFoundError } from '@middleware/errorHandler';
 // ── Helper functions ──────────────────────────────────────────────────────────
 function startOfDay() { const d = new Date(); d.setHours(0,0,0,0); return d; }
 function startOfMonth() { return new Date(new Date().getFullYear(), new Date().getMonth(), 1); }
+function startOfWeek() { const d = new Date(); d.setDate(d.getDate() - d.getDay()); d.setHours(0,0,0,0); return d; }
+function daysAgo(n: number) { const d = new Date(); d.setDate(d.getDate()-n); d.setHours(0,0,0,0); return d; }
+
+// Get comprehensive stats for any user/role
+async function getComprehensiveStats(userId: string, role: 'provider' | 'helper' | 'seeker') {
+  if (role === 'provider') {
+    const provider = await Provider.findOne({ userId });
+    if (!provider) return null;
+    const pId = provider._id;
+    
+    const totalRequests = await EmergencyRequest.countDocuments({ providerId: pId });
+    const completedRequests = await EmergencyRequest.countDocuments({ providerId: pId, status: 'completed' });
+    const pendingRequests = await EmergencyRequest.countDocuments({ providerId: pId, status: 'pending' });
+    const activeRequests = await EmergencyRequest.countDocuments({ providerId: pId, status: 'accepted' });
+    const cancelledRequests = await EmergencyRequest.countDocuments({ providerId: pId, status: 'cancelled' });
+    const todayCompleted = await EmergencyRequest.countDocuments({ providerId: pId, status: 'completed', completedAt: { $gte: startOfDay() } });
+    const weekCompleted = await EmergencyRequest.countDocuments({ providerId: pId, status: 'completed', completedAt: { $gte: startOfWeek() } });
+    const monthCompleted = await EmergencyRequest.countDocuments({ providerId: pId, status: 'completed', completedAt: { $gte: startOfMonth() } });
+    
+    return {
+      totalRequests, completedRequests, pendingRequests, activeRequests, cancelledRequests,
+      todayCompleted, weekCompleted, monthCompleted
+    };
+  } else if (role === 'helper') {
+    const uId = new mongoose.Types.ObjectId(userId);
+    const totalAccepted = await EmergencyRequest.countDocuments({ helperId: uId });
+    const totalCompleted = await EmergencyRequest.countDocuments({ helperId: uId, status: 'completed' });
+    const activeNow = await EmergencyRequest.countDocuments({ helperId: uId, status: 'accepted' });
+    
+    return { totalAccepted, totalCompleted, activeNow };
+  } else {
+    const uId = new mongoose.Types.ObjectId(userId);
+    const pending = await EmergencyRequest.countDocuments({ seekerId: uId, status: 'pending' });
+    const accepted = await EmergencyRequest.countDocuments({ seekerId: uId, status: 'accepted' });
+    const completed = await EmergencyRequest.countDocuments({ seekerId: uId, status: 'completed' });
+    const cancelled = await EmergencyRequest.countDocuments({ seekerId: uId, status: 'cancelled' });
+    
+    return { pending, accepted, completed, cancelled };
+  }
+}
+
+// ── Helper functions ──────────────────────────────────────────────────────────
+function startOfDay() { const d = new Date(); d.setHours(0,0,0,0); return d; }
+function startOfMonth() { return new Date(new Date().getFullYear(), new Date().getMonth(), 1); }
 function daysAgo(n: number) { const d = new Date(); d.setDate(d.getDate()-n); d.setHours(0,0,0,0); return d; }
 
 // Safe geospatial query wrapper — falls back to non-geo if geo fails

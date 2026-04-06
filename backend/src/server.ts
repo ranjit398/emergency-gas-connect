@@ -24,9 +24,11 @@ import ratingRoutes            from '@routes/ratings';
 import notificationRoutes      from '@routes/notifications';
 import matchRoutes             from '@routes/smart/match.routes';
 import liveRoutes              from '@routes/live';
+import liveDiagnosticsRoutes   from '@routes/liveDiagnostics';
 import { setSocketIO }         from '@services/EmergencyRequestService';
 import { setLifecycleIO }      from '@services/requestLifecycle.service';
 import { setReassignmentIO }   from '@services/reassignment.service';
+import { initializeRealtimeSync } from '@services/realtimeDataSync.service';
 
 // ─────────────────────────────────────────────────────────────────────────────
 const app: Express = express();
@@ -77,9 +79,11 @@ const io = new SocketIOServer(httpServer, {
 setSocketIO(io);
 setLifecycleIO(io);
 setReassignmentIO(io);
+initializeRealtimeSync(io);
 
 console.log('[Boot] Socket.IO ready — polling only');
 console.log('[Boot] Allowed origins:', ALLOWED_ORIGINS);
+console.log('[Boot] Real-time data sync initialized');
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Express middleware — CORS also set here for API routes
@@ -149,6 +153,7 @@ v1.use('/ratings',            ratingRoutes);
 v1.use('/notifications',      notificationRoutes);
 v1.use('/match',              matchRoutes);
 v1.use('/live',               liveRoutes);
+v1.use('/diagnostics',        liveDiagnosticsRoutes);
 app.use('/api/v1', v1);
 
 app.use((_req: Request, res: Response) => {

@@ -180,6 +180,35 @@ export function useLiveData(role?: LiveRole, autoRefreshMs = 60_000) {
       }, 2000); // Wait 2s to batch multiple socket events
     };
 
+    // New real-time data sync events from realtimeDataSync.service
+    socket.on('live:data-refresh', (payload: any) => {
+      if (payload?.data) {
+        setData(payload.data);
+        setLastUpdated(new Date());
+        addEvent('📊 Dashboard updated', 'DATA_REFRESH');
+      }
+    });
+
+    socket.on('live:data-changed', (payload: any) => {
+      addEvent('🔄 Data changed', 'DATA_CHANGE');
+      debouncedRefresh();
+    });
+
+    socket.on('inventory:updated', (payload: any) => {
+      addEvent('📦 Inventory updated', 'INVENTORY');
+      debouncedRefresh();
+    });
+
+    socket.on('dashboard_update', (payload: any) => {
+      if (payload?.data) {
+        setData(payload.data);
+        setLastUpdated(new Date());
+      }
+      if (payload?.type === 'FULL_REFRESH') {
+        addEvent('📊 Dashboard refreshed', 'DASHBOARD_REFRESH');
+      }
+    });
+
     socket.on('request:new', (d: any) => {
       addEvent(` New ${d.cylinderType ?? ''} emergency request nearby`, 'NEW_REQUEST');
       debouncedRefresh();
@@ -199,6 +228,12 @@ export function useLiveData(role?: LiveRole, autoRefreshMs = 60_000) {
     });
 
     return () => {
+      // New real-time data sync listeners
+      socket.off('live:data-refresh');
+      socket.off('live:data-changed');
+      socket.off('inventory:updated');
+      socket.off('dashboard_update');
+      // Existing listeners
       socket.off('request:new');
       socket.off('request:status-changed');
       socket.off('notification:request-accepted');
