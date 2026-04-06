@@ -5,7 +5,7 @@ import { tokenStorage } from './api';
 const SOCKET_URL = (
   import.meta.env.VITE_SOCKET_URL ||
   import.meta.env.VITE_API_URL?.replace('/api/v1', '') ||
-  'https://emergency-gas-backend.onrender.com'
+  'https://emergency-gas-frontend.onrender.com/'
 );
 
 console.log('[Socket] Target URL:', SOCKET_URL);
