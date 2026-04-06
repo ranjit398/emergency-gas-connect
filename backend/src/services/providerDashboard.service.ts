@@ -79,11 +79,9 @@ export async function getProviderDashboardStats(userId: string) {
     EmergencyRequest.countDocuments({ providerId: pId, status: 'completed', completedAt: { $gte: startOfWeek() } }),
     // This month
     EmergencyRequest.countDocuments({ providerId: pId, status: 'completed', completedAt: { $gte: startOfMonth() } }),
-    // Nearby pending (for alerts)
-    lng ? EmergencyRequest.countDocuments({
-      status: 'pending',
-      location: { $near: { $geometry: { type: 'Point', coordinates: [lng, lat] }, $maxDistance: 5000 } },
-    }) : 0,
+    // CRITICAL: ALL unassigned pending requests available in the system
+    // (Simplified - shows all available requests, not just geospatial nearby)
+    EmergencyRequest.countDocuments({ status: 'pending', providerId: null }),
     // Active helpers RIGHT NOW
     EmergencyRequest.distinct('helperId', { providerId: pId, status: 'accepted' }).then(ids => ids.length),
     // Real avg rating
