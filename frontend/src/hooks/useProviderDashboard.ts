@@ -167,7 +167,8 @@ export function useProviderDashboard(autoRefreshMs = 30_000) {
         message: `🆕 New ${d.cylinderType ?? ''} emergency request`,
         timestamp: new Date(),
       }, ...prev.slice(0, 29)]);
-      loadAll(true);
+      // Wait 500ms for DB to persist the request, then refresh all stats
+      setTimeout(() => loadAll(true), 500);
     };
 
     const handleStatusChange = (d: any) => {
@@ -177,7 +178,8 @@ export function useProviderDashboard(autoRefreshMs = 30_000) {
         message: d.status === 'completed' ? '✅ Request completed' : `⚡ Request accepted by ${d.helperName ?? 'helper'}`,
         timestamp: new Date(),
       }, ...prev.slice(0, 29)]);
-      loadAll(true);
+      // Wait 500ms for DB to persist the change, then refresh all stats
+      setTimeout(() => loadAll(true), 500);
     };
 
     socket.on('dashboard_update',        handleDashboardUpdate);
