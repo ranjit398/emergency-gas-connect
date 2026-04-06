@@ -253,23 +253,12 @@ export class EmergencyRequestService {
     request.helperId  = helperId as any;
     request.status    = 'accepted' as any;
     request.assignedAt = acceptedAt;
-
-    // ✅ CRITICAL FIX: Assign to any available provider
-    // (Simplified - just pick first provider instead of geospatial)
-    if (!request.providerId) {
-      try {
-        // Pick first provider from database (simplified approach)
-        const anyProvider = await Provider.findOne({}).sort({ createdAt: 1 }).limit(1);
-        if (anyProvider) {
-          request.providerId = anyProvider._id as any;
-          logger.info(`[Request] Assigned to provider ${anyProvider._id} on accept`);
-        }
-      } catch (e) {
-        logger.warn('[Request] Could not set providerId on accept:', e);
-      }
-    }
+    // ✅ DO NOT auto-assign provider here - keep as null
+    // Nearby Emergencies card works with null providerId
+    // This allows ANY provider to see and claim it
 
     await request.save();
+    logger.info(`[Request] Accepted by helper ${helperId} - requestId: ${requestId}`);
 
     // Update helper response time
     try {
@@ -286,6 +275,14 @@ export class EmergencyRequestService {
 
     if (_io) {
       const helperName = full.helper?.fullName ?? 'A helper';
+      
+      // Broadcast to ALL providers to refresh their dashboards
+      logger.info(`[Request] Broadcasting refresh to all providers after acceptance`);
+      _io.emit('dashboard_refresh_trigger', {
+        reason: 'REQUEST_ACCEPTED',
+        timestamp: acceptedAt,
+      });
+      
       _io.to(`request:${requestId}`).emit('request:status-changed', {
         requestId, status: 'accepted', helperId, helperName, timestamp: acceptedAt,
       });
