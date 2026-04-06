@@ -1,6 +1,5 @@
 ﻿import 'dotenv/config';
 import express, { Express, Request, Response, NextFunction } from 'express';
-import cors from 'cors';
 import { createServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import compression from 'compression';
@@ -49,16 +48,27 @@ const ALLOWED_ORIGINS = [
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// EARLY REQUEST LOGGING — Log all requests before any processing
+// ─────────────────────────────────────────────────────────────────────────────
+httpServer.on('request', (req, res) => {
+  // Log all Socket.IO requests to diagnose CORS issues
+  if (req.url && req.url.includes('/socket.io/')) {
+    const origin = req.headers.origin || 'NO_ORIGIN';
+    console.log(`[HTTP] ${req.method} /socket.io/... from origin: ${origin}`);
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Socket.IO — CORS configuration for polling transport
-// Let Socket.IO handle CORS natively without HTTP-level interference
 // ─────────────────────────────────────────────────────────────────────────────
 const io = new SocketIOServer(httpServer, {
   cors: {
     // Use origin function to validate and log
     origin: (requestOrigin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+      console.log(`[Socket.IO CORS Callback] requestOrigin: ${requestOrigin || 'undefined'}, ALLOWED_ORIGINS: ${ALLOWED_ORIGINS.join(', ')}`);
+      
       if (!requestOrigin) {
-        // Allow requests without origin (mobile, etc)
-        console.log('[Socket.IO CORS] No origin - allowing');
+        console.log('[Socket.IO CORS] ✓ No origin specified - allowing');
         return callback(null, true);
       }
       
@@ -67,7 +77,7 @@ const io = new SocketIOServer(httpServer, {
         return callback(null, true);
       }
       
-      console.warn(`[Socket.IO CORS] ✗ Rejected origin: ${requestOrigin}`);
+      console.warn(`[Socket.IO CORS] ✗ Rejected origin: ${requestOrigin} (not in allowed list)`);
       callback(null, false);
     },
     credentials: true,
@@ -90,36 +100,35 @@ console.log('[Boot] Socket.IO ready — polling only');
 console.log('[Boot] Allowed origins:', ALLOWED_ORIGINS);
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Express middleware — CORS also set here for API routes
+// Express middleware — CORS also set here for API routes only
 // ─────────────────────────────────────────────────────────────────────────────
 app.use(helmet({
   crossOriginEmbedderPolicy: false,
-  contentSecurityPolicy: false,   // CSP belongs in frontend, not API
+  contentSecurityPolicy: false,
 }));
 
-// CORS middleware — covers /api/v1/* routes (skip Socket.IO paths)
-app.use(cors({
-  origin: ALLOWED_ORIGINS,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  optionsSuccessStatus: 200,
-}));
-
-// Express-level fallback CORS (skip Socket.IO paths)
+// CORS middleware — SKIP Socket.IO entirely, handle API CORS only
 app.use((req: Request, res: Response, next: NextFunction) => {
-  // Skip Socket.IO paths - let Socket.IO handle them
+  // Skip Socket.IO entirely - let it handle its own CORS
   if (req.path && req.path.startsWith('/socket.io/')) {
+    console.log('[Middleware] Skipping socket.io - letting Socket.IO handle CORS');
     return next();
   }
   
+  // Apply CORS only to API routes 
   const origin = req.headers.origin as string | undefined;
   if (origin && ALLOWED_ORIGINS.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
     res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,PATCH,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
   }
   res.setHeader('Vary', 'Origin');
-  if (req.method === 'OPTIONS') { res.status(200).end(); return; }
+  
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
   next();
 });
 

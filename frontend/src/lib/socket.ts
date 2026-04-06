@@ -7,6 +7,8 @@ const SOCKET_URL = (
   'https://emergency-gas-backend.onrender.com'
 );
 
+console.log('[Socket] Connecting to:', SOCKET_URL);
+
 let socket: Socket | null = null;
 
 export function getSocket(): Socket {
@@ -20,8 +22,8 @@ export function getSocket(): Socket {
 
   socket = io(SOCKET_URL, {
     auth: { token: tokenStorage.getAccess() ?? '' },
-    transports: ['polling'],   // polling ONLY — no WebSocket on Render free tier
-    upgrade: false,             // never try to upgrade
+    transports: ['polling'],
+    upgrade: false,
     withCredentials: true,
     reconnection: true,
     reconnectionAttempts: 5,
@@ -29,19 +31,25 @@ export function getSocket(): Socket {
     reconnectionDelayMax: 30000,
     timeout: 20000,
     forceNew: false,
+    rejectUnauthorized: false,  // For self-signed certs
+    secure: true,               // Force HTTPS
   });
 
   socket.on('connect', () => {
-    console.log('[Socket] Connected:', socket?.id);
+    console.log('[Socket] ✅ Connected:', socket?.id);
   });
 
-  socket.on('connect_error', (err) => {
-    // Only log once, don't spam console
-    console.warn('[Socket] Cannot connect to server:', err.message);
+  socket.on('connect_error', (err: any) => {
+    console.error('[Socket] ❌ Connection error:', {
+      message: err.message,
+      type: err.type,
+      code: err.code,
+      status: err.status,
+    });
   });
 
   socket.on('disconnect', (reason) => {
-    console.warn('[Socket] Disconnected:', reason);
+    console.warn('[Socket] ⚠️ Disconnected:', reason);
   });
 
   return socket;
