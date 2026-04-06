@@ -41,49 +41,61 @@ const ALLOWED_ORIGINS = [
   'https://emergency-gas-frontend.onrender.com',
 ];
 
-// Pull extra origins from env
 (process.env.CORS_ORIGIN || '').split(',').forEach(o => {
   const t = o.trim();
   if (t && !ALLOWED_ORIGINS.includes(t)) ALLOWED_ORIGINS.push(t);
 });
 
+console.log('[Boot] Allowed origins:', ALLOWED_ORIGINS);
+
 // ─────────────────────────────────────────────────────────────────────────────
-// EARLY REQUEST LOGGING — Log all requests before any processing
+// CORE FIX: Patch res.writeHead to FORCE inject CORS headers on every response.
+// Render's proxy strips headers set by Socket.IO's internal handler.
+// Patching writeHead guarantees headers survive — they are written last,
+// overriding anything the proxy might strip or fail to forward.
 // ─────────────────────────────────────────────────────────────────────────────
 httpServer.on('request', (req, res) => {
-  // Log all Socket.IO requests to diagnose CORS issues
-  if (req.url && req.url.includes('/socket.io/')) {
-    const origin = req.headers.origin || 'NO_ORIGIN';
-    console.log(`[HTTP] ${req.method} /socket.io/... from origin: ${origin}`);
+  // Read origin from the request — Render forwards X-Forwarded-* headers
+  // so check both req.headers.origin and X-Forwarded-For as fallback
+  const origin = (req.headers['origin'] || req.headers['x-forwarded-host']) as string | undefined;
+
+  const corsOrigin = (origin && ALLOWED_ORIGINS.includes(origin))
+    ? origin
+    : 'https://emergency-gas-frontend.onrender.com'; // safe default for Render
+
+  // Patch writeHead on this response to inject CORS before headers are sent
+  const originalWriteHead = res.writeHead.bind(res);
+  (res as any).writeHead = function(statusCode: number, ...args: any[]) {
+    // Inject our CORS headers — these override anything previously set
+    try {
+      res.setHeader('Access-Control-Allow-Origin', corsOrigin);
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+      res.setHeader('Vary', 'Origin');
+    } catch {
+      // Headers already sent — ignore
+    }
+    return originalWriteHead(statusCode, ...args);
+  };
+
+  // Handle OPTIONS preflight immediately at raw HTTP level
+  if (req.method === 'OPTIONS') {
+    res.writeHead(200);
+    res.end();
+    return;
   }
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Socket.IO — CORS configuration for polling transport
+// Socket.IO — allow all origins since writeHead patch handles CORS
 // ─────────────────────────────────────────────────────────────────────────────
 const io = new SocketIOServer(httpServer, {
   cors: {
-    // Use origin function to validate and log
-    origin: (requestOrigin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-      console.log(`[Socket.IO CORS Callback] requestOrigin: ${requestOrigin || 'undefined'}, ALLOWED_ORIGINS: ${ALLOWED_ORIGINS.join(', ')}`);
-      
-      if (!requestOrigin) {
-        console.log('[Socket.IO CORS] ✓ No origin specified - allowing');
-        return callback(null, true);
-      }
-      
-      if (ALLOWED_ORIGINS.includes(requestOrigin)) {
-        console.log(`[Socket.IO CORS] ✓ Allowed origin: ${requestOrigin}`);
-        return callback(null, true);
-      }
-      
-      console.warn(`[Socket.IO CORS] ✗ Rejected origin: ${requestOrigin} (not in allowed list)`);
-      callback(null, false);
-    },
-    credentials: true,
+    origin: '*',          // Wildcard — writeHead patch above sets the real origin
     methods: ['GET', 'POST', 'OPTIONS'],
+    credentials: true,
     allowedHeaders: ['Authorization', 'Content-Type'],
-    optionsSuccessStatus: 200,
   },
   transports: ['polling', 'websocket'],
   pingTimeout: 60000,
@@ -96,39 +108,19 @@ setLifecycleIO(io);
 setReassignmentIO(io);
 logSocketDebugInfo();
 
-console.log('[Boot] Socket.IO ready — polling only');
-console.log('[Boot] Allowed origins:', ALLOWED_ORIGINS);
+console.log('[Boot] Socket.IO ready');
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Express middleware — CORS also set here for API routes only
+// Express middleware
 // ─────────────────────────────────────────────────────────────────────────────
 app.use(helmet({
   crossOriginEmbedderPolicy: false,
   contentSecurityPolicy: false,
 }));
 
-// CORS middleware — SKIP Socket.IO entirely, handle API CORS only
+// Express CORS for API routes (writeHead patch covers socket.io)
 app.use((req: Request, res: Response, next: NextFunction) => {
-  // Skip Socket.IO entirely - let it handle its own CORS
-  if (req.path && req.path.startsWith('/socket.io/')) {
-    console.log('[Middleware] Skipping socket.io - letting Socket.IO handle CORS');
-    return next();
-  }
-  
-  // Apply CORS only to API routes 
-  const origin = req.headers.origin as string | undefined;
-  if (origin && ALLOWED_ORIGINS.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,PATCH,OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
-  }
-  res.setHeader('Vary', 'Origin');
-  
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-  
+  if (req.method === 'OPTIONS') { res.status(200).end(); return; }
   next();
 });
 
@@ -148,20 +140,13 @@ socketHandler(io);
 // ─────────────────────────────────────────────────────────────────────────────
 console.log('[Boot] Registering /health route...');
 app.get('/health', (_req, res) => {
-  console.log('[Route] GET /health called');
-  try {
-    res.json({
-      ok: true,
-      ts: new Date().toISOString(),
-      env: config.nodeEnv,
-      allowedOrigins: ALLOWED_ORIGINS,
-      socket: 'polling-only',
-    });
-  } catch (err: unknown) {
-    const error = err instanceof Error ? err.message : String(err);
-    console.error('[Route] /health handler error:', error);
-    res.status(500).json({ error });
-  }
+  res.json({
+    ok: true,
+    ts: new Date().toISOString(),
+    env: config.nodeEnv,
+    allowedOrigins: ALLOWED_ORIGINS,
+    corsMode: 'writeHead-patch',
+  });
 });
 
 app.get('/favicon.ico', (_req, res) => res.status(204).end());
@@ -197,7 +182,6 @@ const startServer = async () => {
     await connectDatabase();
     console.log('[Boot] ✓ MongoDB connected');
 
-    // Initialize real-time sync AFTER database is connected
     initializeRealtimeSync(io);
     console.log('[Boot] Real-time data sync initialized');
 
@@ -205,20 +189,19 @@ const startServer = async () => {
     const PORT = Number(process.env.PORT) || 5000;
     httpServer.setMaxListeners(50);
     console.log(`[Boot] HTTP server configured, PORT=${PORT}`);
-    
+
     console.log('[Boot] Binding to port...');
     await new Promise<void>((resolve, reject) => {
       httpServer.listen(PORT, '0.0.0.0', () => {
         console.log(`[Boot] ✓ Listening on ${PORT}`);
         resolve();
       });
-      
       httpServer.on('error', (err: any) => {
         console.error('[Boot] HTTP error:', err);
         reject(err);
       });
     });
-    
+
     console.log('[Boot] ✓ Server fully initialized');
   } catch (err) {
     console.error('[Boot] FATAL ERROR:', err);

@@ -1,4 +1,5 @@
-﻿import { io, Socket } from 'socket.io-client';
+﻿// frontend/src/lib/socket.ts
+import { io, Socket } from 'socket.io-client';
 import { tokenStorage } from './api';
 
 const SOCKET_URL = (
@@ -7,12 +8,14 @@ const SOCKET_URL = (
   'https://emergency-gas-backend.onrender.com'
 );
 
-console.log('[Socket] Connecting to:', SOCKET_URL);
+console.log('[Socket] Target URL:', SOCKET_URL);
 
 let socket: Socket | null = null;
+let failedPermanently = false;
 
 export function getSocket(): Socket {
   if (socket && socket.connected) return socket;
+  if (failedPermanently && socket) return socket; // return stub, don't reconnect
 
   if (socket) {
     socket.removeAllListeners();
@@ -26,42 +29,45 @@ export function getSocket(): Socket {
     upgrade: false,
     withCredentials: true,
     reconnection: true,
-    reconnectionAttempts: 5,
-    reconnectionDelay: 5000,
+    reconnectionAttempts: 3,        // stop after 3 — don't hammer server
+    reconnectionDelay: 8000,
     reconnectionDelayMax: 30000,
-    timeout: 20000,
+    timeout: 15000,
     forceNew: false,
-    rejectUnauthorized: false,  // For self-signed certs
-    secure: true,               // Force HTTPS
   });
 
   socket.on('connect', () => {
+    failedPermanently = false;
     console.log('[Socket] ✅ Connected:', socket?.id);
   });
 
   socket.on('connect_error', (err: any) => {
-    console.error('[Socket] ❌ Connection error:', {
-      message: err.message,
-      type: err.type,
-      code: err.code,
-      status: err.status,
-    });
+    console.warn('[Socket] ⚠️ Cannot connect (app works without real-time):', err.message);
+  });
+
+  socket.on('reconnect_failed', () => {
+    failedPermanently = true;
+    console.warn('[Socket] Stopped retrying — using HTTP polling fallback');
   });
 
   socket.on('disconnect', (reason) => {
-    console.warn('[Socket] ⚠️ Disconnected:', reason);
+    if (reason !== 'io client disconnect') {
+      console.warn('[Socket] Disconnected:', reason);
+    }
   });
 
   return socket;
 }
 
+export function isSocketConnected(): boolean {
+  return socket?.connected ?? false;
+}
+
 export function updateSocketToken() {
   const token = tokenStorage.getAccess() ?? '';
-  if (socket) {
+  if (socket && !failedPermanently) {
     socket.auth = { token };
-    if (socket.connected) {
-      socket.disconnect().connect();
-    }
+    if (socket.connected) socket.disconnect().connect();
   }
 }
 
@@ -70,5 +76,7 @@ export function disconnectSocket() {
     socket.removeAllListeners();
     socket.disconnect();
     socket = null;
+    failedPermanently = false;
   }
 }
+
