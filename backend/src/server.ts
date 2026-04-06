@@ -49,43 +49,31 @@ const ALLOWED_ORIGINS = [
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// HTTP-level CORS for Socket.IO polling requests (OPTIONS preflight handling)
-// Only set headers if they haven't been sent yet
-// ─────────────────────────────────────────────────────────────────────────────
-httpServer.on('request', (req, res) => {
-  // Skip if headers already sent
-  if (res.headersSent) return;
-  
-  // Only intercept OPTIONS (preflight) and socket.io requests
-  if (req.method === 'OPTIONS' || (req.url && req.url.includes('/socket.io/'))) {
-    const origin = req.headers.origin;
-    if (origin && ALLOWED_ORIGINS.includes(origin)) {
-      try {
-        res.setHeader('Access-Control-Allow-Origin', origin);
-        res.setHeader('Access-Control-Allow-Credentials', 'true');
-        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-      } catch (err) {
-        // Headers already sent, safe to ignore
-      }
-    }
-    // Complete OPTIONS requests immediately
-    if (req.method === 'OPTIONS' && !res.headersSent) {
-      res.writeHead(200);
-      res.end();
-    }
-  }
-});
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Socket.IO — Simplified CORS for polling transport
+// Socket.IO — CORS configuration for polling transport
+// Let Socket.IO handle CORS natively without HTTP-level interference
 // ─────────────────────────────────────────────────────────────────────────────
 const io = new SocketIOServer(httpServer, {
   cors: {
-    origin: ALLOWED_ORIGINS, // Allow specific origins
+    // Use origin function to validate and log
+    origin: (requestOrigin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+      if (!requestOrigin) {
+        // Allow requests without origin (mobile, etc)
+        console.log('[Socket.IO CORS] No origin - allowing');
+        return callback(null, true);
+      }
+      
+      if (ALLOWED_ORIGINS.includes(requestOrigin)) {
+        console.log(`[Socket.IO CORS] ✓ Allowed origin: ${requestOrigin}`);
+        return callback(null, true);
+      }
+      
+      console.warn(`[Socket.IO CORS] ✗ Rejected origin: ${requestOrigin}`);
+      callback(null, false);
+    },
     credentials: true,
     methods: ['GET', 'POST', 'OPTIONS'],
     allowedHeaders: ['Authorization', 'Content-Type'],
+    optionsSuccessStatus: 200,
   },
   transports: ['polling', 'websocket'],
   pingTimeout: 60000,
@@ -109,7 +97,7 @@ app.use(helmet({
   contentSecurityPolicy: false,   // CSP belongs in frontend, not API
 }));
 
-// CORS middleware — covers both /api/v1/* routes AND helps with Socket.IO
+// CORS middleware — covers /api/v1/* routes (skip Socket.IO paths)
 app.use(cors({
   origin: ALLOWED_ORIGINS,
   credentials: true,
@@ -118,8 +106,13 @@ app.use(cors({
   optionsSuccessStatus: 200,
 }));
 
-// Express-level fallback CORS (in case cors middleware doesn't catch all)
+// Express-level fallback CORS (skip Socket.IO paths)
 app.use((req: Request, res: Response, next: NextFunction) => {
+  // Skip Socket.IO paths - let Socket.IO handle them
+  if (req.path && req.path.startsWith('/socket.io/')) {
+    return next();
+  }
+  
   const origin = req.headers.origin as string | undefined;
   if (origin && ALLOWED_ORIGINS.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
