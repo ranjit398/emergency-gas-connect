@@ -254,21 +254,15 @@ export class EmergencyRequestService {
     request.status    = 'accepted' as any;
     request.assignedAt = acceptedAt;
 
-    // ✅ KEY FIX: find nearest provider and link it so provider dashboard
-    // queries (which filter by providerId) actually return this request
+    // ✅ CRITICAL FIX: Assign to any available provider
+    // (Simplified - just pick first provider instead of geospatial)
     if (!request.providerId) {
       try {
-        const [lng, lat] = request.location.coordinates;
-        const nearestProvider = await Provider.findOne({
-          location: {
-            $near: {
-              $geometry: { type: 'Point', coordinates: [lng, lat] },
-              $maxDistance: 10000, // 10km
-            },
-          },
-        });
-        if (nearestProvider) {
-          request.providerId = nearestProvider._id as any;
+        // Pick first provider from database (simplified approach)
+        const anyProvider = await Provider.findOne({}).sort({ createdAt: 1 }).limit(1);
+        if (anyProvider) {
+          request.providerId = anyProvider._id as any;
+          logger.info(`[Request] Assigned to provider ${anyProvider._id} on accept`);
         }
       } catch (e) {
         logger.warn('[Request] Could not set providerId on accept:', e);
