@@ -48,32 +48,23 @@ const ALLOWED_ORIGINS = [
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// CRITICAL: Set CORS headers at HTTP level for Socket.IO polling (XHR requests)
-// Only set headers if they haven't been sent yet to avoid ERR_HTTP_HEADERS_SENT
-// ─────────────────────────────────────────────────────────────────────────────
-httpServer.on('request', (req, res) => {
-  // Skip if headers already sent (Socket.IO/engine.io will have already sent them)
-  if (res.headersSent) return;
-  
-  const origin = req.headers['origin'] as string | undefined;
-  const allow = (origin && ALLOWED_ORIGINS.includes(origin)) ? origin : '*';
-  
-  try {
-    res.setHeader('Access-Control-Allow-Origin', allow);
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  } catch (err) {
-    // Headers already sent, safe to ignore
-    logger.debug('[CORS] Headers already sent, skipping');
-  }
-});
-
-// Socket.IO — CORS configured here
+// Socket.IO — Dynamic CORS for polling transport
 // ─────────────────────────────────────────────────────────────────────────────
 const io = new SocketIOServer(httpServer, {
   cors: {
-    origin: ALLOWED_ORIGINS,
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+      // Allow requests without origin (like Postman, mobile apps)
+      if (!origin) return callback(null, true);
+      
+      // Check if origin is allowed
+      if (ALLOWED_ORIGINS.includes(origin)) {
+        return callback(null, true);
+      }
+      
+      // Log rejected origins for debugging
+      logger.warn(`[Socket.IO CORS] Rejected origin: ${origin}`);
+      callback(new Error('CORS not allowed'), false);
+    },
     methods: ['GET', 'POST', 'OPTIONS'],
     credentials: true,
     allowedHeaders: ['Authorization', 'Content-Type'],
